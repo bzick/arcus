@@ -1,0 +1,28 @@
+{
+  "name": "arcus/arcus",
+  "type": "library",
+  "description": "Library for creating PHP cluster",
+  "license": "GPL-3.0+",
+  "keywords": ["arcus", "cloud", "cluster", "ion"],
+  "authors": [
+	{
+	  "name": "Ivan Shalganov",
+	  "email": "a.cobest@gmail.com"
+	}
+  ],
+  "require": {
+	"php":       ">=7.0",
+	"ext-redis": "*",
+	"ext-ion":   "*",
+	"psr/log":   "^1.0"
+  },
+  "require-dev": {
+	"phpunit/phpunit":   "*",
+	"phpion/phpion":     "dev-master"
+  },
+  "autoload": {
+	"psr-0": {
+	  "Arcus\\": "src"
+	}
+  }
+}

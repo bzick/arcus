@@ -3,8 +3,6 @@
 namespace Arcus\QueueHub;
 
 
-use Arcus\TaskAbstract;
-
 abstract class ProducerAbstract implements ProducerInterface {
 
     protected $_producer = "";
@@ -26,12 +24,4 @@ abstract class ProducerAbstract implements ProducerInterface {
     public function getProducerName() : string {
         return $this->_producer;
     }
-
-    abstract public function countConsumers() : int;
-
-    abstract public function getConsumersNames() : array;
-
-    abstract public function hasConsumers() : bool;
-
-    abstract public function push(TaskAbstract $task) : bool;
 }

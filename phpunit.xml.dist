@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <phpunit
-
          colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
@@ -16,10 +15,10 @@
         <ini name="display_errors" value="1"/>
         <ini name="error_reporting" value="-1"/>
 
-        <!--<const name="LOGGING" value="1" />-->
-        <const name="REDIS_HOST" value="127.0.0.1" />
-        <const name="REDIS_PORT" value="6379" />
-        <const name="SERVER_ADDRESS" value="127.0.0.1:19854" />
+        <!--<const name="REDIS_HOST" value="127.0.0.1" />-->
+        <!--<const name="REDIS_PORT" value="6379" />-->
+        <!--<const name="REDIS_DATABASE" value="10" />-->
+        <!--<const name="SERVER_ADDRESS" value="127.0.0.1:19854" />-->
     </php>
 
     <testsuites>

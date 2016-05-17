@@ -3,6 +3,7 @@
 namespace Arcus\Redis\QueueHub;
 
 
+use Arcus\Log;
 use Arcus\QueueHub\ConsumerAbstract;
 use ION\Stream;
 
@@ -19,11 +20,17 @@ class Consumer extends ConsumerAbstract {
     protected $_socket;
     protected $_listen = false;
     protected $_host;
+    protected $_dbn;
 
     public function __construct(\Redis $redis, string $producer, string $consumer) {
         $this->_producer = $producer;
         $this->_consumer = $consumer;
         $this->_redis = $redis;
+
+        $this->_dbn  = $redis->database ?? 0;
+        $hostname    = $redis->host ?? "127.0.0.1";
+        $port        = $redis->port ?? 6379;
+        $this->_host = $hostname.":".$port;
     }
 
     public function setLockName(string $name) {
@@ -58,12 +65,16 @@ class Consumer extends ConsumerAbstract {
 //                ->onClose([$this, "_onClose"]);
 //                ->setWriteTimeout(60);
             $this->_redis->sAdd($this->_producer . "#consumers", $this->_consumer);
+            if($this->_dbn) {
+                $this->_socket->write("SELECT {$this->_dbn}\r\n");
+            }
             $this->_socket->enable();
         }
         if(!$this->_listen) {
             $this->_socket->write("BRPOPLPUSH {$this->_producer} {$this->_producer}#consumers:{$this->_consumer} 0\r\n");
             $this->_listen = true;
         }
+        return $this;
     }
 
     public function release() : self {
@@ -104,38 +115,42 @@ class Consumer extends ConsumerAbstract {
      * @return \Generator (yields)
      */
     protected function _onTask(Stream $stream) {
-        $head = yield $stream->readLine("\r\n");
-        switch ($head[0]) {
-            case "$":
-                $length = (int)substr($head, 1) + 2; // + \r\n
-                $data = yield $stream->read($length);
-                try {
-                    $this->_listen = false;
-                    $this->_task($data);
-                    if ($this->_batch_size) {
-                        for ($i = 0; $i < $this->_batch_size; $i++) {
-                            if ($value = $this->_redis->rpoplpush($this->_producer, "{$this->_producer}#consumers:{$this->_consumer}")) {
-                                $this->_task($value);
-                            } else {
-                                break;
+        do {
+            $head = yield $stream->readLine("\r\n");
+            switch ($head[0]) {
+                case "$":
+                    $length = (int)substr($head, 1) + 2; // + \r\n
+                    $data   = yield $stream->read($length);
+                    try {
+                        $this->_listen = false;
+                        $this->_task($data);
+                        if ($this->_batch_size) {
+                            for ($i = 0; $i < $this->_batch_size; $i++) {
+                                if ($value = $this->_redis->rpoplpush($this->_producer, "{$this->_producer}#consumers:{$this->_consumer}")) {
+                                    $this->_task($value);
+                                } else {
+                                    break;
+                                }
                             }
                         }
+                    } catch (\Exception $e) {
+                        Log::error($e);
+                    } finally {
+                        if ($this->_auto_enable) {
+                            $this->enable();
+                        }
                     }
-                } catch (\Exception $e) {
-                    Log::error($e);
-                } finally {
-                    if ($this->_auto_enable) {
-                        $this->enable();
-                    }
-                }
-                break;
-            case "-": // error message
-                Log::error("$this: redis error: " . $head);
-                return;
-            default:
-                Log::warning("$this: unknown redis response head: $head");
-                return;
-        }
+                    break;
+                case "-": // error message
+                    Log::error("$this: redis error: " . $head);
+                    return;
+                case "+": // success on SELECT etc
+                    break;
+                default:
+                    Log::warning("$this: unknown redis response head: $head");
+                    return;
+            }
+        } while($stream->getSize());
     }
 
     /**
@@ -150,5 +165,9 @@ class Consumer extends ConsumerAbstract {
                 $this->release();
             }
         }
+    }
+
+    public function getCountTasks() : int {
+        return $this->_redis->lLen($this->_producer);
     }
 }

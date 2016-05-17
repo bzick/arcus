@@ -18,11 +18,15 @@
   },
   "require-dev": {
 	"phpunit/phpunit":   "*",
-	"phpion/phpion":     "dev-master"
+	"phpion/phpion":     "dev-master",
+	"satooshi/php-coveralls": "dev-master"
   },
   "autoload": {
 	"psr-0": {
 	  "Arcus\\": "src"
 	}
+  },
+  "autoload-dev": {
+	"classmap": ["tests/"]
   }
 }

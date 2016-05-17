@@ -80,18 +80,4 @@ abstract class ConsumerAbstract implements ConsumerInterface {
 
         return $this->_on_task;
     }
-
-    /**
-     * Возвращает список зарезервированных под выполенение задач
-     * @return array
-     */
-    abstract public function getReservedTasks() : array;
-
-    abstract public function enable();
-
-    abstract public function release();
-
-    abstract public function disable();
-
-    abstract public function close();
 }

@@ -13,7 +13,9 @@ interface ProducerInterface {
 
     public function hasConsumers() : bool;
 
-    public function countConsumers() : int;
+    public function getCountConsumers() : int;
+
+    public function getCountTasks() : int;
 
     public function getConsumersNames() : array;
 

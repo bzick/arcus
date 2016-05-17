@@ -29,11 +29,15 @@ class Producer extends ProducerAbstract {
         }
     }
 
-    public function countConsumers() : int {
+    public function getCountConsumers() : int {
         return $this->_redis->sCard($this->_producer."#consumers");
     }
 
     public function getConsumersNames() : array {
         return $this->_redis->sMembers($this->_producer."#consumers");
+    }
+
+    public function getCountTasks() : int {
+        return $this->_redis->lLen($this->_producer);
     }
 }

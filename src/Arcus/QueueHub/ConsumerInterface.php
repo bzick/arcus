@@ -11,6 +11,8 @@ interface ConsumerInterface {
 
     public function getProducerName() : string;
 
+    public function getCountTasks() : int;
+
     public function __toString() : string;
 
     /**

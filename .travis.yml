@@ -1,0 +1,16 @@
+language: php
+
+sudo: false
+
+php:
+  - 7.0
+
+before_script:
+  - composer install --dev
+  - cd vendor/phpion/phpion; bin/build.php -pmic
+
+script:
+  - php -dextension=vendor/phpion/phpion/module/ion.so vendor/bin/phpunit
+
+after_script:
+  - php vendor/bin/coveralls

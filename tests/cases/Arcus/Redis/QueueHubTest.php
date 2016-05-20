@@ -50,6 +50,7 @@ class QueueHubTest extends \PHPUnit_Framework_TestCase {
         $producer->push(new CustomTask(2));
 
         $this->assertEquals(2, $producer->getCountTasks());
+        $this->assertEquals(2, $consumer->getCountTasks());
 
         $consumer->onTask()->then(function(TaskAbstract $task) use ($consumer) {
             $this->shared["tasks"][] = $task;

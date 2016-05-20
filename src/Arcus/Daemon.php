@@ -3,7 +3,8 @@
 namespace Arcus;
 
 
-use Arcus\Daemon\Worker;
+use Arcus\Daemon\Area;
+use ION\Process;
 
 class Daemon {
 
@@ -15,9 +16,12 @@ class Daemon {
      * @var float
      */
     protected $_timer = 2.0;
-    protected $_workers = [];
+    /**
+     * @var Area[]
+     */
+    protected $_groups = [];
 
-    public static function getWorker() : Worker {
+    public static function getWorker() : Area {
         if(self::$_current) {
             return self::$_current->worker;
         } else {
@@ -43,7 +47,7 @@ class Daemon {
 
     public function __construct(Cluster $cluster, $name) {
         $this->cluster = $cluster;
-        $this->worker = new Worker($this, null);
+        $this->worker = new Area($this, null);
         $this->_name = $name;
     }
 
@@ -71,13 +75,18 @@ class Daemon {
     /**
      * @param mixed $count
      *
-     * @return Worker
+     * @return Area
      */
-    public function addWorker($count) : Worker {
-        return $this->_workers[] = new Worker($this, $count);
+    public function addWorker($count) : Area {
+        return $this->_groups[] = new Area($this, $count);
     }
 
     public function start() {
         self::$_current = $this;
+        foreach($this->_groups as $group) {
+//            $group->
+//            $worker->start();
+        }
+//        $w = Process::spawn(0, );
     }
 }

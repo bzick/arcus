@@ -61,9 +61,6 @@ class Consumer extends ConsumerAbstract {
         if(!$this->_socket) {
             $this->_socket = Stream::socket($this->_host);
             $this->_socket->incoming()->then([$this, "_onTask"])->then($this->_on_task);
-//                ->onData([$this, "_onTask"])
-//                ->onClose([$this, "_onClose"]);
-//                ->setWriteTimeout(60);
             $this->_redis->sAdd($this->_producer . "#consumers", $this->_consumer);
             if($this->_dbn) {
                 $this->_socket->write("SELECT {$this->_dbn}\r\n");

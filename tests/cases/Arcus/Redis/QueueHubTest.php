@@ -39,9 +39,6 @@ class QueueHubTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals('cons', $consumer->getConsumerName());
     }
 
-    /**
-     * @group dev
-     */
     public function testTransferTask() {
         $producer = $this->hub->getProducer('prod');
         $consumer = $this->hub->getConsumer('prod', 'cons');

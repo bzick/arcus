@@ -13,7 +13,6 @@
   "require": {
 	"php":       ">=7.0",
 	"ext-redis": "*",
-	"ext-ion":   "*",
 	"psr/log":   "^1.0"
   },
   "require-dev": {

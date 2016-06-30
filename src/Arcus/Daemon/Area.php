@@ -10,6 +10,7 @@ use ION\Process;
 
 class Area {
 
+    public $name;
     private $_user;
     private $_group;
     private $_priority;
@@ -31,6 +32,7 @@ class Area {
      * @param int|callable $regulator
      */
     public function __construct(string $name, $regulator) {
+        $this->name = $name;
         if(is_int($regulator)) {
             $this->_regulator = new Daemon\Area\ConstantRegulator($regulator);
         } elseif (is_callable($regulator)) {
@@ -62,8 +64,11 @@ class Area {
      * @return Area
      */
     public function setUser(string $user_name) : self {
-        if(!Process::getUser($user_name)) {
+        $user = Process::getUser($user_name);
+        if(!$user) {
             throw new \RuntimeException("User $user_name does not exists");
+        } else {
+            Log::debug("Area {$this->name}: workers will be change user to {$user_name} ({$user['uid']})");
         }
         $this->_user = $user_name;
         return $this;
@@ -75,8 +80,11 @@ class Area {
      * @return Area
      */
     public function setGroup(string $group_name) : self {
-        if(!Process::getGroup($group_name)) {
+        $group = Process::getGroup($group_name);
+        if(!$group) {
             throw new \RuntimeException("Group $group_name does not exists");
+        } else {
+            Log::debug("Area {$this->name}: workers will be change group to {$group_name} ({$group['gid']})");
         }
         $this->_group = $group_name;
         return $this;
@@ -154,6 +162,7 @@ class Area {
             if($this->_user) {
                 Process::setUser($this->_user, $this->_group);
             }
+            \ION::interval(1.0, "arcus.inspector")->then($this->getInspector($master));
             foreach($this->_entities as $name => $app) {
                 try {
                     $app->enable();
@@ -164,11 +173,28 @@ class Area {
         });
     }
 
+    public function getInspector(Process\Worker $master) {
+        return function () use ($master) {
+            $stats = [
+                "load"     => \ION::getStats(),
+                "entities" => []
+            ];
+            foreach($this->_entities as $name => $app) {
+                try {
+                    $stats["entities"][$name] = $app->inspect();
+                } catch(\Throwable $e) {
+                    Log::alert(new \RuntimeException("Application $name could not enable", 0, $e));
+                }
+            }
+            $master->message("arcus.stats")->withData(serialize($stats));
+        };
+    }
+
     /**
      * Run worker and apps
      */
     public function start() {
-        $count = $this->_regulator->__invoke($this);
+        $count = call_user_func($this->_regulator, $this);
         if($count > $this->_count) {
             for($i = $this->_count; $i < $count; $this->_count++) {
                 $this->_spawn();

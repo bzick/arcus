@@ -16,7 +16,7 @@ $cluster = new Cluster("cl", $bus, $queue);
 
 $daemon = $cluster->addDaemon("imp01");
 
-$frontend = new Area("frontend", new ConstantRegulator(10));
+$frontend = new Area("frontend");
 $frontend->setUser("www-data");
 $frontend->setGroup("www-data");
 $frontend->setPriority(20);
@@ -25,7 +25,7 @@ $server = new \Arcus\Server\HTTPServer("web");
 
 $frontend->addEntity($server);
 
-$daemon->addArea($frontend, new ConstantRegulator(3));
+$daemon->addArea($frontend, new ConstantRegulator(5));
 
 $backend = new Area('backend');
 $backend->setUser("nobody");

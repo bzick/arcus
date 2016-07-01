@@ -6,27 +6,36 @@ use Arcus\Daemon\Area\ConstantRegulator;
 use Arcus\Redis\QueueHub;
 use Arcus\RedisHub;
 
+// prepare tools
+
 $bus     = new RedisHub();
 $queue   = new QueueHub($bus->queue);
 $cluster = new Cluster("cl", $bus, $queue);
 
-$daemon = $cluster->addDaemon("imp01");
+// now create daemon
 
-//$worker = $daemon->addWorker(4);
+$daemon = $cluster->addDaemon("imp01");
 
 $frontend = new Area("frontend", new ConstantRegulator(10));
 $frontend->setUser("www-data");
 $frontend->setGroup("www-data");
+$frontend->setPriority(20);
 
-$server = new \Arcus\Server\HTTPServer("web", $cluster);
+$server = new \Arcus\Server\HTTPServer("web");
 
+$frontend->addEntity($server);
 
-$frontend->addEntity(new App());
+$daemon->addArea($frontend, new ConstantRegulator(3));
 
-$daemon->addArea($frontend);
+$backend = new Area('backend');
+$backend->setUser("nobody");
+$backend->setGroup("nobody");
+$backend->setPriority(3);
+$backend->addEntity(new class("app") extends \Arcus\ApplicationAbstract {
+    // ...
+});
 
-$backend = new Area('backend', (new Area\LoadRegulator(4, 10))->setLoadLevel(0.5)->setStepSize(1));
+$daemon->addArea($backend, (new Area\LoadRegulator(4, 10))->setLoadLevel(0.7, 0.5)->setStepSize(2));
 
-$worker = $daemon->addWorker([4, 10, 0.7]);
-$worker->addEntity(new App());
+$daemon->start();
 

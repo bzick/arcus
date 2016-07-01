@@ -19,7 +19,7 @@ class HTTPServer implements EntityInterface {
     public $name = __CLASS__;
     public $server;
 
-    public function __construct($name, QueueHubInterface $queue) {
+    public function __construct($name) {
         $this->name = $name;
         $this->server = new Server();
     }

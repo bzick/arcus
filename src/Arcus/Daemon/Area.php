@@ -29,24 +29,27 @@ class Area {
      * Area constructor.
      *
      * @param string $name
-     * @param int|callable $regulator
      */
-    public function __construct(string $name, $regulator) {
+    public function __construct(string $name) {
         $this->name = $name;
-        if(is_int($regulator)) {
-            $this->_regulator = new Daemon\Area\ConstantRegulator($regulator);
-        } elseif (is_callable($regulator)) {
-            $this->_regulator = $regulator;
-        } else {
-            throw new \InvalidArgumentException("Invalid regulator value");
-        }
+//        if(is_int($regulator)) {
+//            $this->_regulator = new Daemon\Area\ConstantRegulator($regulator);
+//        } elseif (is_callable($regulator)) {
+//            $this->_regulator = $regulator;
+//        } else {
+//            throw new \InvalidArgumentException("Invalid regulator value");
+//        }
+    }
+
+    public function getName() : string {
+        return $this->name;
     }
 
     public function getWorkersCount() : int {
         return $this->_count;
     }
 
-    public function getLoadAverage() : array {
+    public function getLoadAverage() : float {
         return 0;
     }
 

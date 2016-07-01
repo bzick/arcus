@@ -1,7 +1,7 @@
 {
   "name": "arcus/arcus",
   "type": "library",
-  "description": "Library for creating PHP cluster",
+  "description": "PHP cluster framework",
   "license": "GPL-3.0+",
   "keywords": ["arcus", "cloud", "cluster", "ion"],
   "authors": [

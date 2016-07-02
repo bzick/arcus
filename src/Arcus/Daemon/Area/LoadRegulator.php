@@ -29,9 +29,9 @@ class LoadRegulator implements RegulatorInterface {
      *
      * @return LoadRegulator
      */
-    public function setLoadLevel(float $warm_up, float $cool_down) : self {
-        $this->warm_up_level = $warm_up;
+    public function setLoadLevel(float $cool_down, float $warm_up) : self {
         $this->cool_down_level = $cool_down;
+        $this->warm_up_level = $warm_up;
         return $this;
     }
 
@@ -48,24 +48,21 @@ class LoadRegulator implements RegulatorInterface {
     }
 
     public function __invoke(Area $area) : int {
+        $current_load = $area->getLoadAverage();
         $count = $area->getWorkersCount();
         if($count < $this->min) {
-            $count = $this->min;
-        }
-        if($area->getLoadAverage() <= $this->load_level) {
+            return $this->min;
+        } elseif ($current_load <= $this->warm_up_level && $current_load >= $this->cool_down_level) {
             return $count;
-        }
-        if($count < $this->min) {
-            if($this->min - $count >= $this->step_size) {
-                $count = $this->min;
-            } else {
-                $count += $this->step_size;
-            }
-        } else {
+        } elseif ($current_load > $this->warm_up_level && !($count >= $this->max)) {
             $count += $this->step_size;
+        } elseif ($current_load < $this->cool_down_level&& !($count <= $this->min)) {
+            $count -= $this->step_size;
         }
         if($count > $this->max) {
             $count = $this->max;
+        } elseif($count < $this->min) {
+            $count = $this->min;
         }
         return $count;
     }

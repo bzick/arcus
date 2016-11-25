@@ -21,16 +21,20 @@ class Daemon {
      * @var Area[]
      */
     protected $_areas = [];
+    /**
+     * @var Cluster
+     */
+    protected $_cluster;
+    /**
+     * @var string
+     */
+    protected $_name;
 
-    public static function getWorker() : Area {
-        if(self::$_current) {
-            return self::$_current->worker;
-        } else {
-            throw new \LogicException("Daemon not ready");
-        }
+    public static function getCurrentWorker() : Area {
+
     }
 
-    public static function getDaemon() : Daemon {
+    public static function getCurrent() : Daemon {
         if(self::$_current) {
             return self::$_current;
         } else {
@@ -38,19 +42,22 @@ class Daemon {
         }
     }
 
-    public static function getCluster() : Cluster {
-        if(self::$_current) {
-            return self::$_current->cluster;
-        } else {
-            throw new \LogicException("Daemon not ready");
-        }
+    public static function getCurrentCluster() : Cluster {
+        return self::getCurrent()->getCluster();
     }
 
-    public function __construct(Cluster $cluster, $name) {
-        $this->cluster = $cluster;
-        $this->worker = new Area($this, null);
+    public function __construct(Cluster $cluster, string $name = '') {
+        if(!$name) {
+            $name = gethostname().":".Process::getPid();
+        }
         $this->_name = $name;
+        $this->_cluster = $cluster;
     }
+
+    public function getCluster() : Cluster {
+        return $this->_cluster;
+    }
+
 
     /**
      * Интервал между инспекциями подсистем. Влияет на таймауты коннектов.
@@ -72,13 +79,19 @@ class Daemon {
         return $this->_timer;
     }
 
-
-    public function addArea(Area $area, RegulatorInterface $regulator) {
-        $this->_areas[$area->getName()] = [$area, $regulator];
+    public function addArea(string $name, RegulatorInterface $regulator) {
+        $area = new Area($this, $name, $regulator);
+        $this->_areas[$area->getName()] = [ $area, $regulator ];
+        return $area;
     }
 
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
     public function getArea(string $name) {
-        return $this->_areas[$name] ?? false;
+        return $this->_areas[$name][0] ?? false;
     }
 
     /**
@@ -86,8 +99,9 @@ class Daemon {
      */
     public function start() {
         self::$_current = $this;
-        foreach($this->_areas as list($area, $regulator)) {
-            /* @var Area $area */
+        foreach($this->_areas as $area) {
+
+            $area->inspect();
             /* @var RegulatorInterface $regulator */
             $current = $area->getWorkersCount();
             $expected = $regulator($area);

@@ -18,9 +18,6 @@ class RegulatorTest extends \PHPUnit_Framework_TestCase {
         }));
     }
 
-    /**
-     * @group dev
-     */
     public function testLoadRegulator() {
         $regulator = new LoadRegulator(2, 6);
         $regulator->setLoadLevel(0.4, 0.6);

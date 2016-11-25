@@ -3,13 +3,25 @@
 namespace Arcus;
 
 
+use Arcus\QueueHub\ClusterConsumer;
 use Psr\Log\LogLevel;
 
-class ApplicationAbstract implements EntityInterface {
+abstract class ApplicationAbstract implements EntityInterface {
 
+    /**
+     * @var string
+     */
     protected $_name;
+    /**
+     * @var QueueHubInterface
+     */
+    protected $_queue;
+    /**
+     * @var ClusterConsumer
+     */
+    protected $_consumer;
 
-    public function getName() {
+    public function getName() : string {
         return $this->_name;
     }
 
@@ -17,15 +29,13 @@ class ApplicationAbstract implements EntityInterface {
         return get_called_class()."({$this->_name})";
     }
 
-    public function setUp(QueueHubInterface $queue) {
-        $this->queue = $queue;
-        $this->_own_consumer = $queue->getConsumer(Daemon::current()->worker()->getName()."/".$this->_name);
-        $this->_daemon_consumer = $queue->getConsumer(Daemon::current()->getName()."/".$this->_name);
-        $this->_cluster_consumer = $queue->getConsumer(Daemon::current()->getCluster()->getName()."/".$this->_name);
-    }
+    abstract public function start() : bool;
+    abstract public function stop() : bool;
 
-    public function enable() {
-        // TODO: Implement enable() method.
+    public function enable(QueueHubInterface $queue) : bool {
+        $this->_queue = $queue;
+        $this->_consumer = new ClusterConsumer($this->_queue, $this);
+        return $this->start();
     }
 
     public function disable() {
@@ -51,4 +61,6 @@ class ApplicationAbstract implements EntityInterface {
     public function fatal(\Exception $error) {
         // TODO: Implement fatal() method.
     }
+
+    abstract public function dispatch(TaskAbstract $task);
 }

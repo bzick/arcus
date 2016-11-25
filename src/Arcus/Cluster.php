@@ -3,6 +3,8 @@
 namespace Arcus;
 
 
+use ION\Process;
+
 class Cluster {
     /**
      * @var string
@@ -35,7 +37,7 @@ class Cluster {
      *
      * @return Daemon
      */
-    public function addDaemon(string $name) {
+    public function addDaemon(string $name = "") {
         return new Daemon($this, $name);
     }
 

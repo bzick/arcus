@@ -4,6 +4,8 @@ namespace Arcus;
 
 
 
+use ION\Process;
+use ION\Promise;
 use Psr\Log\LogLevel;
 
 interface EntityInterface {
@@ -12,15 +14,17 @@ interface EntityInterface {
 
     public function __toString();
 
-    public function enable();
+    public function enable(QueueHubInterface $queue) : bool;
 
-    public function disable();
+    public function disable() : Promise;
 
-    public function halt();
+    public function halt() : Process;
 
     public function inspect();
 
 	public function log($message, $level = LogLevel::DEBUG);
+
+    public function dispatch(TaskAbstract $task);
 
 	public function logRotate();
 

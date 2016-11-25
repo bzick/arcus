@@ -4,6 +4,7 @@ namespace Arcus\Daemon;
 
 
 use Arcus\Daemon;
+use Arcus\Daemon\Area\RegulatorInterface;
 use Arcus\EntityInterface;
 use Arcus\Log;
 use ION\Process;
@@ -28,24 +29,21 @@ class Area {
     /**
      * Area constructor.
      *
+     * @param Daemon $daemon
      * @param string $name
+     * @param RegulatorInterface $regulator
      */
-    public function __construct(string $name) {
+    public function __construct(Daemon $daemon, string $name, RegulatorInterface $regulator) {
+        $this->daemon = $daemon;
+        $this->_regulator = $regulator;
         $this->name = $name;
-//        if(is_int($regulator)) {
-//            $this->_regulator = new Daemon\Area\ConstantRegulator($regulator);
-//        } elseif (is_callable($regulator)) {
-//            $this->_regulator = $regulator;
-//        } else {
-//            throw new \InvalidArgumentException("Invalid regulator value");
-//        }
     }
 
     public function getName() : string {
         return $this->name;
     }
 
-    public function getWorkersCount() : int {
+    public function getProcessCount() : int {
         return $this->_count;
     }
 
@@ -150,12 +148,12 @@ class Area {
     }
 
     private function _spawn() {
-        $worker = new Process\Worker();
-        $worker->onMessage()->then([$this, "_workerMessage"]);
-        $worker->onExit()->then([$this, "_workerExit"]);
-        $worker->run(function (Process\Worker $master) {
-            $master->onMessage()->then([$this, "_masterMessage"]);
-            $master->onExit()->then([$this, "_masterExit"]);
+        $process = new Worker();
+        $process->getIPC()->whenIncoming()->then([$this, "_workerMessage"]);
+        $process->getIPC()->whenDisconnected()->then([$this, "_workerExit"]);
+        $process->start(function (Process\IPC $ipc) {
+            $ipc->whenIncoming()->then([$this, "_masterMessage"]);
+            $ipc->whenDisconnected()->then([$this, "_masterExit"]);
             if($this->_work_dir) {
                 chdir($this->_work_dir);
             }

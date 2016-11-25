@@ -5,6 +5,12 @@ namespace Arcus\QueueHub;
 use Arcus\TaskAbstract;
 use ION\Sequence;
 
+/**
+ * Потребитель задач.
+ * Получает и обрабатывает задачи из очереди.
+ *
+ * @package Arcus\QueueHub
+ */
 interface ConsumerInterface {
 
     public function getConsumerName() : string;
@@ -22,7 +28,7 @@ interface ConsumerInterface {
     public function getReservedTasks() : array;
 
     /**
-     * Release finished tasks automatically
+     * Release finished tasks automatically. Default: true
      *
      * @param bool $state
      *
@@ -31,7 +37,7 @@ interface ConsumerInterface {
     public function setAutoRelease(bool $state);
 
     /**
-     * How many tasks fetch from queue in one event.
+     * How many tasks fetch from queue in one event. Default: 1
      *
      * @param int $size
      *

@@ -8,10 +8,16 @@ use Arcus\QueueHub\ProducerInterface;
 
 interface QueueHubInterface {
 
+    /**
+     *
+     * @param string $producer
+     *
+     * @return ProducerInterface
+     */
     public function getProducer(string $producer) : ProducerInterface;
 
     public function getConsumer(string $producer, string $consumer) : ConsumerInterface;
 
-    public function getAppConsumers(string $name) : array ;
-    public function getAppProducer(string $name, string $type = 'cluster') : array ;
+//    public function getAppConsumers(string $name) : array ;
+//    public function getAppProducer(string $name, string $type = 'cluster') : array ;
 }

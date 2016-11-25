@@ -13,7 +13,7 @@ use Arcus\TaskAbstract;
  */
 interface ProducerInterface {
 
-    public function getProducerName() : string;
+    public function getName() : string;
 
     public function __toString() : string;
 

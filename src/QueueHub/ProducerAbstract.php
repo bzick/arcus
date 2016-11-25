@@ -21,7 +21,7 @@ abstract class ProducerAbstract implements ProducerInterface {
         return $this->_count;
     }
 
-    public function getProducerName() : string {
+    public function getName() : string {
         return $this->_producer;
     }
 }

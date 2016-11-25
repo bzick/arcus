@@ -12,16 +12,17 @@
   ],
   "require": {
 	"php":       ">=7.0",
-	"ext-redis": "*",
+	"ext-redis": ">=3.0",
+	"ext-ion":   "*",
 	"psr/log":   "^1.0"
   },
   "require-dev": {
-	"phpunit/phpunit":   "*",
-	"phpion/phpion":     "dev-master",
-	"satooshi/php-coveralls": "dev-master"
+	"phpunit/phpunit":        "*",
+	"phpion/phpion":          "*",
+	"satooshi/php-coveralls": "*"
   },
   "autoload": {
-	"psr-0": {
+	"psr-4": {
 	  "Arcus\\": "src"
 	}
   },

@@ -7,41 +7,42 @@ use Arcus\CustomTask;
 use Arcus\QueueHub\ConsumerInterface;
 use Arcus\QueueHub\ProducerInterface;
 use Arcus\TaskAbstract;
+use Arcus\TestCase;
 
-class QueueHubTest extends \PHPUnit_Framework_TestCase {
+class QueueHubTest extends TestCase {
 
     /**
      * @var QueueHub
      */
-    public $hub;
-    public $shared = [];
+//    public $hub;
+//    public $shared = [];
 
     public function setUp() {
-        $redis = new \Redis();
-        $redis->host = REDIS_HOST;
-        $redis->port = REDIS_PORT;
-        $redis->database = REDIS_DATABASE;
-        $redis->connect(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
-        $redis->select(REDIS_DATABASE);
-        $redis->flushDB();
-        $this->shared = [];
-        $this->hub = new QueueHub($redis);
+//        $redis = new \Redis();
+//        $redis->host = REDIS_HOST;
+//        $redis->port = REDIS_PORT;
+//        $redis->database = REDIS_DATABASE;
+//        $redis->connect(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
+//        $redis->select(REDIS_DATABASE);
+//        $redis->flushDB();
+//        $this->shared = [];
+//        $this->hub = new QueueHub($redis);
     }
 
     public function testFactory() {
-        $producer = $this->hub->getProducer('prod');
-        $consumer = $this->hub->getConsumer('prod', 'cons');
+        $producer = $this->queue->getProducer('prod');
+        $consumer = $this->queue->getConsumer('prod', 'cons');
         $this->assertInstanceOf(ProducerInterface::class, $producer);
         $this->assertInstanceOf(ConsumerInterface::class, $consumer);
 
-        $this->assertEquals('prod', $producer->getProducerName());
+        $this->assertEquals('prod', $producer->getName());
         $this->assertEquals('prod', $consumer->getProducerName());
-        $this->assertEquals('cons', $consumer->getConsumerName());
+        $this->assertEquals('cons', $consumer->getName());
     }
 
     public function testTransferTask() {
-        $producer = $this->hub->getProducer('prod');
-        $consumer = $this->hub->getConsumer('prod', 'cons');
+        $producer = $this->queue->getProducer('prod');
+        $consumer = $this->queue->getConsumer('prod', 'cons');
 
         $producer->push(new CustomTask(1));
         $producer->push(new CustomTask(2));

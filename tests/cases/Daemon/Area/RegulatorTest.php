@@ -4,8 +4,9 @@ namespace Arcus\Daemon\Area;
 
 
 use Arcus\Daemon\Area;
+use Arcus\TestCase;
 
-class RegulatorTest extends \PHPUnit_Framework_TestCase {
+class RegulatorTest extends TestCase {
 
     public function testConstRegulator() {
 
@@ -23,7 +24,7 @@ class RegulatorTest extends \PHPUnit_Framework_TestCase {
         $regulator->setLoadLevel(0.4, 0.6);
         $regulator->setStepSize(2);
 
-        $area = new class("test") extends Area {
+        $area = new class($this->daemon) extends Area {
             public $load;
             public $workers_count;
             public function setStars(float $load, int $workers_count) {

@@ -30,7 +30,7 @@ abstract class ConsumerAbstract implements ConsumerInterface {
     protected $_on_task;
 
 
-    public function getConsumerName() : string {
+    public function getName() : string {
         return $this->_consumer;
     }
 

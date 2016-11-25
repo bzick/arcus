@@ -4,23 +4,12 @@ namespace Arcus;
 
 use Arcus\Kits\DevKit;
 
-class RedisHubTest extends \PHPUnit_Framework_TestCase {
+class RedisHubTest extends TestCase {
 
     /**
      * @var RedisHub
      */
     public $redis;
-
-    public function setUp() {
-        $this->redis = new RedisHub();
-        $this->redis->setRedisHost('redis', [REDIS_HOST, REDIS_PORT]);
-//        $this->redis->r;
-    }
-
-    public function tearDown() {
-        $this->redis->close();
-        $this->redis = null;
-    }
 
     public function testDefault() {
         $redis = $this->redis;

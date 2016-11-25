@@ -13,7 +13,7 @@ use ION\Sequence;
  */
 interface ConsumerInterface {
 
-    public function getConsumerName() : string;
+    public function getName() : string;
 
     public function getProducerName() : string;
 

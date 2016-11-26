@@ -122,7 +122,7 @@ class Area {
             try {
                 $stats[$name] = $app->inspect();
             } catch(\Throwable $e) {
-                // todo something
+                Log::warning(new Daemon\Error\InspectionFailedException("Inspection of {$app} failed: ".$e->getMessage(), 0, $e));
             }
         }
         return $stats;
@@ -132,7 +132,7 @@ class Area {
 
     }
 
-    private function _masterExit(Process\Worker $worker) {
+    private function _masterExit(Worker $worker) {
         Log::emerge("Lost connection with master. Terminate worker");
 //        Process::kill(SIGTERM);
     }

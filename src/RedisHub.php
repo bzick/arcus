@@ -92,9 +92,9 @@ class RedisHub {
             $driver->connect($host['connect'][0], $host['connect'][1]);
             $driver->host = $host['connect'][0];
             $driver->port = $host['connect'][1];
-            $driver->db   = 0;
+            $driver->database = 0;
             if($host['db']) {
-                $driver->db = $host['db'];
+                $driver->database = $host['db'];
                 $driver->select($host['db']);
             }
             $driver->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);

@@ -11,24 +11,6 @@ use Arcus\TestCase;
 
 class QueueHubTest extends TestCase {
 
-    /**
-     * @var QueueHub
-     */
-//    public $hub;
-//    public $shared = [];
-
-    public function setUp() {
-//        $redis = new \Redis();
-//        $redis->host = REDIS_HOST;
-//        $redis->port = REDIS_PORT;
-//        $redis->database = REDIS_DATABASE;
-//        $redis->connect(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
-//        $redis->select(REDIS_DATABASE);
-//        $redis->flushDB();
-//        $this->shared = [];
-//        $this->hub = new QueueHub($redis);
-    }
-
     public function testFactory() {
         $producer = $this->queue->getProducer('prod');
         $consumer = $this->queue->getConsumer('prod', 'cons');

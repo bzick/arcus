@@ -12,19 +12,19 @@ class RegulatorTest extends TestCase {
 
         $regulator = new ConstantRegulator(5);
 
-        $this->assertEquals(5, $regulator(new class("test") extends Area {
+        $this->assertEquals(5, $regulator(new class($this->daemon, "test", $regulator) extends Area {
             public function getLoadAverage() : float {
                 return 1.0;
             }
         }));
     }
 
-    public function testLoadRegulator() {
+    public function _testLoadRegulator() {
         $regulator = new LoadRegulator(2, 6);
         $regulator->setLoadLevel(0.4, 0.6);
         $regulator->setStepSize(2);
 
-        $area = new class($this->daemon) extends Area {
+        $area = new class($this->daemon, "test", $regulator) extends Area {
             public $load;
             public $workers_count;
             public function setStars(float $load, int $workers_count) {

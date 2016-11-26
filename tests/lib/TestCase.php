@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: bzick
- * Date: 25.11.16
- * Time: 23:58
- */
 
 namespace Arcus;
-
 
 use Arcus\Redis\QueueHub;
 
@@ -33,12 +26,12 @@ class TestCase extends \PHPUnit_Framework_TestCase {
         $this->redis->setRedisHost('redis', [REDIS_HOST, REDIS_PORT], REDIS_DATABASE);
         $this->redis->redis->flushAll();
         $this->queue = new QueueHub($this->redis->queue);
-        $this->cluster = new Cluster("intest", $this->redis, $this->queue);
-        $this->daemon = $this->cluster->addDaemon('n1');
+        $this->cluster = new Cluster("ghost", $this->redis, $this->queue);
+        $this->daemon = $this->cluster->addDaemon('daemo');
     }
 
     public function tearDown() {
-        $this->shared = [];
+        $this->shared = [];// ghost://frontend1:123/http#
         $this->daemon = null;
         $this->queue = null;
         $this->cluster = null;

@@ -32,7 +32,7 @@ class QueueHubTest extends TestCase {
         $this->assertEquals(2, $producer->getCountTasks());
         $this->assertEquals(2, $consumer->getCountTasks());
 
-        $consumer->onTask()->then(function(TaskAbstract $task) use ($consumer) {
+        $consumer->whenTask()->then(function(TaskAbstract $task) use ($consumer) {
             $this->shared["tasks"][] = $task;
             $this->assertEquals([$task], $consumer->getReservedTasks());
             if(count($this->shared["tasks"]) == 2) {

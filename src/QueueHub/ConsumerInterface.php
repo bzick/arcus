@@ -55,7 +55,7 @@ interface ConsumerInterface {
     /**
      * @return Sequence
      */
-    public function onTask() : Sequence;
+    public function whenTask() : Sequence;
 
     /**
      * @return ConsumerInterface

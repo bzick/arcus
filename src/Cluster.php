@@ -41,11 +41,11 @@ class Cluster {
         return new Daemon($this, $name);
     }
 
-    public function getBus() : RedisHub {
+    public function getRedisHub() : RedisHub {
         return $this->_bus;
     }
 
-    public function getQueue() : QueueHubInterface {
+    public function getQueueHub() : QueueHubInterface {
         return $this->_queue;
     }
 }

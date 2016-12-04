@@ -5,7 +5,9 @@ namespace Arcus;
 
 use Arcus\Daemon\Area;
 use Arcus\Daemon\Area\RegulatorInterface;
+use Arcus\Daemon\Worker;
 use ION\Process;
+use Psr\Log\LogLevel;
 
 class Daemon {
 
@@ -30,8 +32,8 @@ class Daemon {
      */
     protected $_name;
 
-    public static function getCurrentWorker() : Area {
-
+    public static function getCurrentWorker() : Worker {
+        return self::getCurrent()->getWorker();
     }
 
     public static function getCurrent() : Daemon {
@@ -56,6 +58,10 @@ class Daemon {
 
     public function getCluster() : Cluster {
         return $this->_cluster;
+    }
+
+    public function getName() : string {
+        return $this->_name;
     }
 
 
@@ -92,6 +98,14 @@ class Daemon {
      */
     public function getArea(string $name) {
         return $this->_areas[$name][0] ?? false;
+    }
+
+    public function log($message, string $level) {
+        iF($this->_logger) {
+
+        } else {
+//            error_log();
+        }
     }
 
     /**

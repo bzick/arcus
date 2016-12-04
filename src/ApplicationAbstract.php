@@ -3,7 +3,9 @@
 namespace Arcus;
 
 
-use Arcus\QueueHub\ClusterConsumer;
+use Arcus\Application\InternalQueue;
+use Arcus\Daemon\Worker;
+use ION\Promise;
 use Psr\Log\LogLevel;
 
 abstract class ApplicationAbstract implements EntityInterface {
@@ -15,11 +17,11 @@ abstract class ApplicationAbstract implements EntityInterface {
     /**
      * @var QueueHubInterface
      */
-    protected $_queue;
+    protected $_worker;
     /**
-     * @var ClusterConsumer
+     * @var InternalQueue
      */
-    protected $_consumer;
+    protected $_internal;
 
     public function getName() : string {
         return $this->_name;
@@ -29,21 +31,28 @@ abstract class ApplicationAbstract implements EntityInterface {
         return get_called_class()."({$this->_name})";
     }
 
+    /**
+     * @return bool
+     */
     abstract public function start() : bool;
     abstract public function stop() : bool;
 
-    public function enable(QueueHubInterface $queue) : bool {
-        $this->_queue = $queue;
-        $this->_consumer = new ClusterConsumer($this->_queue, $this);
+    public function enable(Worker $worker) : bool {
+        $this->_worker = $worker;
+        $this->_internal = new InternalQueue($worker->getQueueHub(), $this);
         return $this->start();
     }
 
-    public function disable() {
-        // TODO: Implement disable() method.
+    public function getWorker() {
+
+    }
+
+    public function disable() : Promise {
+        return \ION::promise(true);
     }
 
     public function halt() {
-        // TODO: Implement halt() method.
+
     }
 
     public function inspect() {
@@ -58,7 +67,7 @@ abstract class ApplicationAbstract implements EntityInterface {
         // TODO: Implement logRotate() method.
     }
 
-    public function fatal(\Exception $error) {
+    public function fatal(\Throwable $error) {
         // TODO: Implement fatal() method.
     }
 

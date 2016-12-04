@@ -49,7 +49,7 @@ class LoadRegulator implements RegulatorInterface {
 
     public function __invoke(Area $area) : int {
         $current_load = $area->getLoadAverage();
-        $count = $area->getWorkersCount();
+        $count = $area->getProcessCount();
         if($count < $this->min) {
             return $this->min;
         } elseif ($current_load <= $this->warm_up_level && $current_load >= $this->cool_down_level) {

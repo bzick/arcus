@@ -22,8 +22,8 @@ class Consumer extends ConsumerAbstract {
     protected $_host;
     protected $_dbn;
 
-    public function __construct(\Redis $redis, string $producer, string $consumer) {
-        $this->_producer = $producer;
+    public function __construct(\Redis $redis, string $queue_name, string $consumer) {
+        $this->_producer = $queue_name;
         $this->_consumer = $consumer;
         $this->_redis = $redis;
 

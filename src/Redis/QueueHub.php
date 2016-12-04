@@ -36,7 +36,7 @@ class QueueHub implements QueueHubInterface {
         // TODO: Implement getAppProducer() method.
     }
 
-    public function getConsumer(string $producer, string $consumer) : ConsumerInterface {
-        return new Consumer($this->_redis, $producer, $consumer);
+    public function getConsumer(string $queue_name, string $consumer) : ConsumerInterface {
+        return new Consumer($this->_redis, $queue_name, $consumer);
     }
 }

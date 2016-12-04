@@ -17,7 +17,7 @@ class HashStorage extends StorageAbstract {
      * @return string
      */
     public function __toString() {
-        return "RHash[{$this->_name}]";
+        return self::class."[{$this->_name}]";
     }
 
     /**

@@ -19,7 +19,7 @@ class RegulatorTest extends TestCase {
         }));
     }
 
-    public function _testLoadRegulator() {
+    public function testLoadRegulator() {
         $regulator = new LoadRegulator(2, 6);
         $regulator->setLoadLevel(0.4, 0.6);
         $regulator->setStepSize(2);
@@ -37,7 +37,7 @@ class RegulatorTest extends TestCase {
                 return $this->load;
             }
 
-            public function getWorkersCount() : int {
+            public function getProcessCount() : int {
                 return $this->workers_count;
             }
         };

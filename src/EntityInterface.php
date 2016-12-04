@@ -4,7 +4,7 @@ namespace Arcus;
 
 
 
-use ION\Process;
+use Arcus\Daemon\Worker;
 use ION\Promise;
 use Psr\Log\LogLevel;
 
@@ -14,20 +14,27 @@ interface EntityInterface {
 
     public function __toString();
 
-    public function enable(QueueHubInterface $queue) : bool;
+    public function enable(Worker $worker) : bool;
 
     public function disable() : Promise;
 
-    public function halt() : Process;
+    public function halt();
 
     public function inspect();
 
 	public function log($message, $level = LogLevel::DEBUG);
 
+    public function logRotate();
+
     public function dispatch(TaskAbstract $task);
 
-	public function logRotate();
+    public function fatal(\Throwable $error);
 
-	public function fatal(\Exception $error);
+    /**
+     * @param string $of (variants: self, daemon, cluster)
+     *
+     * @return mixed
+     */
+	public function getURI(string $of = 'self');
 
 } 

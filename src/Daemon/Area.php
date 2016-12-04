@@ -39,6 +39,10 @@ class Area {
         $this->name = $name;
     }
 
+    public function getDaemon() : Daemon {
+        return $this->daemon;
+    }
+
     public function getName() : string {
         return $this->name;
     }
@@ -114,9 +118,16 @@ class Area {
     }
 
     /**
+     * @return EntityInterface[]
+     */
+    public function getEntities() : array {
+        return $this->_entities;
+    }
+
+    /**
      * @return array
      */
-    public function inspect() {
+    public function inspectEntities() {
         $stats = [];
         foreach($this->_entities as $name => $app) {
             try {

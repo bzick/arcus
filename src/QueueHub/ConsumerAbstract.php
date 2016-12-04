@@ -73,7 +73,7 @@ abstract class ConsumerAbstract implements ConsumerInterface {
     /**
      * @return Sequence
      */
-    public function onTask() : Sequence {
+    public function whenTask() : Sequence {
         if (!$this->_on_task) {
             $this->_on_task = new Sequence();
         }

@@ -7,10 +7,10 @@ php:
 
 before_script:
   - composer install --dev
-  - cd vendor/phpion/phpion; bin/build.php -pmic
+  - vendor/bin/ion-loader.php --load=./ion.so
 
 script:
-  - php -dextension=vendor/phpion/phpion/module/ion.so vendor/bin/phpunit
+  - php -dextension=./ion.so vendor/bin/phpunit
 
 after_script:
   - php vendor/bin/coveralls

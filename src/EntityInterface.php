@@ -4,7 +4,7 @@ namespace Arcus;
 
 
 
-use Arcus\Daemon\Worker;
+use Arcus\Daemon\WorkerDispatcher;
 use ION\Promise;
 use Psr\Log\LogLevel;
 
@@ -14,7 +14,7 @@ interface EntityInterface {
 
     public function __toString();
 
-    public function enable(Worker $worker) : bool;
+    public function enable(WorkerDispatcher $worker) : bool;
 
     public function disable() : Promise;
 

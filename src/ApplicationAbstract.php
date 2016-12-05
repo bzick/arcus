@@ -4,7 +4,7 @@ namespace Arcus;
 
 
 use Arcus\Application\InternalQueue;
-use Arcus\Daemon\Worker;
+use Arcus\Daemon\WorkerDispatcher;
 use ION\Promise;
 use Psr\Log\LogLevel;
 
@@ -37,7 +37,7 @@ abstract class ApplicationAbstract implements EntityInterface {
     abstract public function start() : bool;
     abstract public function stop() : bool;
 
-    public function enable(Worker $worker) : bool {
+    public function enable(WorkerDispatcher $worker) : bool {
         $this->_worker = $worker;
         $this->_internal = new InternalQueue($worker->getQueueHub(), $this);
         return $this->start();

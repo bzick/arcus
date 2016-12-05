@@ -5,7 +5,7 @@ namespace Arcus;
 
 use Arcus\Daemon\Area;
 use Arcus\Daemon\Area\RegulatorInterface;
-use Arcus\Daemon\Worker;
+use Arcus\Daemon\WorkerDispatcher;
 use ION\Process;
 use Psr\Log\LogLevel;
 
@@ -32,7 +32,7 @@ class Daemon {
      */
     protected $_name;
 
-    public static function getCurrentWorker() : Worker {
+    public static function getCurrentWorker() : WorkerDispatcher {
         return self::getCurrent()->getWorker();
     }
 
@@ -101,11 +101,7 @@ class Daemon {
     }
 
     public function log($message, string $level) {
-        iF($this->_logger) {
-
-        } else {
-//            error_log();
-        }
+//        Log::{$level}();
     }
 
     /**

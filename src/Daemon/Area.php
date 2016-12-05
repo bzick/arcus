@@ -143,7 +143,7 @@ class Area {
 
     }
 
-    private function _masterExit(Worker $worker) {
+    private function _masterExit(WorkerDispatcher $worker) {
         Log::emerge("Lost connection with master. Terminate worker");
 //        Process::kill(SIGTERM);
     }
@@ -159,7 +159,7 @@ class Area {
     }
 
     private function _spawn() {
-        $process = new Worker();
+        $process = new WorkerDispatcher();
         $process->getIPC()->whenIncoming()->then([$this, "_workerMessage"]);
         $process->getIPC()->whenDisconnected()->then([$this, "_workerExit"]);
         $process->start(function (Process\IPC $ipc) {

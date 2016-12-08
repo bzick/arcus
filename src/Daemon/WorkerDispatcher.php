@@ -8,7 +8,6 @@ use Arcus\Daemon;
 use Arcus\EntityInterface;
 use Arcus\QueueHubInterface;
 use Arcus\RedisHub;
-use Daemon\Error\StartupFailedException;
 use ION\Process\IPC;
 use ION\Promise;
 use Psr\Log\LogLevel;
@@ -56,13 +55,18 @@ class WorkerDispatcher {
      * Inspect all entities
      */
     public function inspector() {
+        $stats = [
+            "time"   => microtime(1),
+            "worker" => \ION::getStats()
+        ];
         foreach ($this->_entities as $name => $entity) {
             try {
-                $entity->inspect();
+                $stats["entities"][$name] = $entity->inspect();
             } catch (\Throwable $e) {
                 $entity->log($e, LogLevel::ERROR);
             }
         }
+        $this->_ipc->send(json_encode($stats, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
 
     /**

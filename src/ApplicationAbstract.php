@@ -6,6 +6,7 @@ namespace Arcus;
 use Arcus\Application\InternalQueue;
 use Arcus\Daemon\WorkerDispatcher;
 use ION\Promise;
+use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
 abstract class ApplicationAbstract implements EntityInterface {
@@ -23,24 +24,29 @@ abstract class ApplicationAbstract implements EntityInterface {
      */
     protected $_internal;
 
+    /**
+     * @var LoggerInterface
+     */
+    protected $_logger;
+    protected $_current_task;
+
     public function getName() : string {
         return $this->_name;
+    }
+
+    public function getURI(string $of = 'self')
+    {
+
     }
 
     public function __toString() {
         return get_called_class()."({$this->_name})";
     }
 
-    /**
-     * @return bool
-     */
-    abstract public function start() : bool;
-    abstract public function stop() : bool;
-
     public function enable(WorkerDispatcher $worker) : bool {
         $this->_worker = $worker;
         $this->_internal = new InternalQueue($worker->getQueueHub(), $this);
-        return $this->start();
+        return true;
     }
 
     public function getWorker() {
@@ -55,12 +61,24 @@ abstract class ApplicationAbstract implements EntityInterface {
 
     }
 
-    public function inspect() {
+    public function inspect() : array {
         // TODO: Implement inspect() method.
     }
 
+    public function setLogger(LoggerInterface $logger) {
+        $this->_logger = $logger;
+    }
+
+    public function getLogger() : LoggerInterface {
+
+    }
+
     public function log($message, $level = LogLevel::DEBUG) {
-        // TODO: Implement log() method.
+        if($this->_logger) {
+            $this->_logger->log($level, $message, ["app" => $this]);
+        } elseif(LogLevel::DEBUG !== $level) {
+            Log::message($message, $level);
+        }
     }
 
     public function logRotate() {
@@ -72,4 +90,20 @@ abstract class ApplicationAbstract implements EntityInterface {
     }
 
     abstract public function dispatch(TaskAbstract $task);
+
+    public function resume(TaskAbstract $task) : self {
+        $this->_current_task = $task;
+    }
+
+    public function suspend() {
+        $this->_current_task = null;
+    }
+
+    public function hasCurrentTask() {
+        return (bool)$this->_current_task;
+    }
+
+    public function getCurrentTask() {
+        return $this->_current_task;
+    }
 }

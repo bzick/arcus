@@ -19,7 +19,7 @@ class TestCase extends \PHPUnit_Framework_TestCase {
     public $queue;
     public $daemon;
 
-    public $shared = [];
+    public $data = [];
 
     public function setUp() {
         $this->redis = new RedisHub();
@@ -31,7 +31,7 @@ class TestCase extends \PHPUnit_Framework_TestCase {
     }
 
     public function tearDown() {
-        $this->shared = [];// ghost://frontend1:123/http#
+        $this->data = [];
         $this->daemon = null;
         $this->queue = null;
         $this->cluster = null;

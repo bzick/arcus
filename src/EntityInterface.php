@@ -20,7 +20,7 @@ interface EntityInterface {
 
     public function halt();
 
-    public function inspect();
+    public function inspect() : array;
 
 	public function log($message, $level = LogLevel::DEBUG);
 

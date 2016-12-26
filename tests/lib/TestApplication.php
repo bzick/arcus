@@ -10,4 +10,9 @@ class TestApplication extends ApplicationAbstract
     {
 
     }
+
+    public function inspect(): array
+    {
+        return [];
+    }
 }

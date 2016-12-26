@@ -14,7 +14,7 @@ abstract class ApplicationAbstract implements EntityInterface {
     /**
      * @var string
      */
-    protected $_name;
+    protected $_name = 'noname';
     /**
      * @var QueueHubInterface
      */
@@ -30,7 +30,8 @@ abstract class ApplicationAbstract implements EntityInterface {
     protected $_logger;
     protected $_current_task;
 
-    public function getName() : string {
+    public function getName() : string
+    {
         return $this->_name;
     }
 
@@ -39,7 +40,8 @@ abstract class ApplicationAbstract implements EntityInterface {
 
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return get_called_class()."({$this->_name})";
     }
 
@@ -61,9 +63,7 @@ abstract class ApplicationAbstract implements EntityInterface {
 
     }
 
-    public function inspect() : array {
-        // TODO: Implement inspect() method.
-    }
+    abstract public function inspect() : array;
 
     public function setLogger(LoggerInterface $logger) {
         $this->_logger = $logger;

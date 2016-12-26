@@ -5,6 +5,8 @@ namespace Arcus\Daemon;
 
 use Arcus\ApplicationAbstract;
 use Arcus\Daemon\Area\ConstantRegulator;
+use Arcus\Daemon\IPC\CloseMessage;
+use Arcus\Daemon\IPC\InspectMessage;
 use Arcus\EntityInterface;
 use Arcus\TestApplication;
 use Arcus\TestCase;
@@ -30,9 +32,13 @@ class WorkerDispatcherTest extends TestCase
         $this->worker = new WorkerDispatcher($area, $ipc);
     }
 
-    public function testRun() {
+    /**
+     * @group dev
+     */
+    public function testBasicLifeCycle() {
+        $stats = ["stats" => 1];
         $app = $this->getMockBuilder(TestApplication::class)
-            ->setMethods(['enable'])
+            ->setMethods(['enable', 'inspect', 'disable', 'halt'])
             ->getMock();
 
         $app->expects($this->once())
@@ -42,10 +48,39 @@ class WorkerDispatcherTest extends TestCase
                 $this->isInstanceOf(WorkerDispatcher::class)
             );
 
+        $app->expects($this->once())
+            ->method("inspect")
+            ->willReturn($stats);
+
+        $app->expects($this->once())
+            ->method("disable")
+            ->willReturn(\ION::promise(true));
+
+        $app->expects($this->once())
+            ->method("halt");
+
+
         $this->assertSame(1, $this->worker->run($app));
+        $this->ipc->whenIncoming()->then(function (IPC\Message $message) {
+            $msg = unserialize($message->data);
+            $this->data[] = $msg;
+            if($msg instanceof CloseMessage) {
+                \ION::stop();
+            }
+        });
+        $this->worker->inspector();
+        $this->worker->stop();
+        \ION::dispatch();
+
+//        var_dump($this->data);
+
+        $this->assertCount(2, $this->data);
+        $this->assertInstanceOf(InspectMessage::class, $this->data[0]);
+        $this->assertSame($stats, $this->data[0]->getAppStatsFor("noname"));
+        $this->assertInstanceOf(CloseMessage::class, $this->data[1]);
     }
 
-    public function testNotRun() {
+    public function _testNotRun() {
         $app = $this->getMockBuilder(TestApplication::class)
             ->setMethods(['enable'])
             ->getMock();

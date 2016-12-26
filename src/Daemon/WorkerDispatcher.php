@@ -5,6 +5,8 @@ namespace Arcus\Daemon;
 
 use Arcus\Cluster;
 use Arcus\Daemon;
+use Arcus\Daemon\IPC\CloseMessage;
+use Arcus\Daemon\IPC\InspectMessage;
 use Arcus\EntityInterface;
 use Arcus\QueueHubInterface;
 use Arcus\RedisHub;
@@ -35,24 +37,24 @@ class WorkerDispatcher {
      * @return int the count of started entities
      */
     public function run(EntityInterface ...$entities) {
-        foreach ($entities as $name => $entity) {
+        foreach ($entities as $entity) {
             /** @var EntityInterface $entity */
             try {
                 if($entity->enable($this)) {
-                    $this->_entities[ $name ] = $entity;
+                    $this->_entities[ $entity->getName() ] = $entity;
                 } else {
-                    $this->getDaemon()->log("The application {$name} decided not to run", LogLevel::NOTICE);
+                    $this->getDaemon()->log("The application {$entity->getName()} decided not to run", LogLevel::NOTICE);
                 }
             } catch (\Throwable $e) {
                 $entity->log($e, LogLevel::CRITICAL);
-                $this->getDaemon()->log("The application {$name} cannot be started: ".$e->getMessage(), LogLevel::ERROR);
+                $this->getDaemon()->log("The application {$entity->getName()} cannot be started: ".$e->getMessage(), LogLevel::ERROR);
             }
         }
         return count($this->_entities);
     }
 
     /**
-     * Inspect all entities
+     * Inspect all apps
      */
     public function inspector() {
         $stats = [
@@ -66,7 +68,7 @@ class WorkerDispatcher {
                 $entity->log($e, LogLevel::ERROR);
             }
         }
-        $this->_ipc->send(json_encode($stats, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        $this->_ipc->send(serialize(new InspectMessage($stats)));
     }
 
     /**
@@ -94,6 +96,7 @@ class WorkerDispatcher {
                 }
                 $this->getDaemon()->log("Application $name has stopped", LogLevel::DEBUG);
             }
+            $this->_ipc->send(serialize(new CloseMessage()));
         });
     }
 

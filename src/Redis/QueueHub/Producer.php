@@ -2,7 +2,7 @@
 
 namespace Arcus\Redis\QueueHub;
 
-use Arcus\QueueHub\ProducerAbstract;
+use Arcus\Channel\ProducerAbstract;
 use Arcus\TaskAbstract;
 
 class Producer extends ProducerAbstract {

@@ -9,14 +9,14 @@ use ION\Promise;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
-abstract class ApplicationAbstract implements EntityInterface {
+abstract class ApplicationAbstract implements ApplicationInterface {
 
     /**
      * @var string
      */
     protected $_name = 'noname';
     /**
-     * @var QueueHubInterface
+     * @var ChannelFactory
      */
     protected $_worker;
     /**

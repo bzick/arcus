@@ -3,9 +3,9 @@
 namespace Arcus\Redis;
 
 
+use Arcus\Channel\ConsumerInterface;
+use Arcus\Channel\ProducerInterface;
 use Arcus\CustomTask;
-use Arcus\QueueHub\ConsumerInterface;
-use Arcus\QueueHub\ProducerInterface;
 use Arcus\TaskAbstract;
 use Arcus\TestCase;
 

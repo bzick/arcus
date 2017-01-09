@@ -25,7 +25,7 @@ $frontend->setPriority(20);
 
 //$server = new \Arcus\Server\HTTPServer("web");
 
-$server = $frontend->addEntity(Arcus\Server\HTTPServer::class, ["web" => "echo"]);
+$server = $frontend->addApp(Arcus\Server\HTTPServer::class, ["web" => "echo"]);
 //$frontend->addEntity($server);
 
 //$backend = $daemon->addArea('apps', Regulator::loadAverage(4, 10))->setLoadLevel(0.7, 0.5)->setStepSize(2));
@@ -34,7 +34,7 @@ $backend->setUser("nobody");
 $backend->setGroup("nobody");
 $backend->setPriority(3);
 
-$backend->addEntity(Arcus\Application\EchoServer::class, "echo");
+$backend->addApp(Arcus\Application\EchoServer::class, "echo");
 
 $daemon->start();
 

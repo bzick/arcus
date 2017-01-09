@@ -3,8 +3,8 @@
 namespace Arcus\Redis\QueueHub;
 
 
+use Arcus\Channel\ConsumerAbstract;
 use Arcus\Log;
-use Arcus\QueueHub\ConsumerAbstract;
 use ION\Stream;
 
 class Consumer extends ConsumerAbstract {

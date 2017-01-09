@@ -7,8 +7,8 @@ use Arcus\Cluster;
 use Arcus\Daemon;
 use Arcus\Daemon\IPC\CloseMessage;
 use Arcus\Daemon\IPC\InspectMessage;
-use Arcus\EntityInterface;
-use Arcus\QueueHubInterface;
+use Arcus\ApplicationInterface;
+use Arcus\ChannelFactory;
 use Arcus\RedisHub;
 use ION\Process\IPC;
 use ION\Promise;
@@ -17,14 +17,14 @@ use Psr\Log\LogLevel;
 class WorkerDispatcher {
 
     /**
-     * @var QueueHubInterface
+     * @var ChannelFactory
      */
     private $_area;
 
     /**
-     * @var EntityInterface[]
+     * @var ApplicationInterface[]
      */
-    private $_entities = [];
+    private $_apps = [];
 
     public function __construct(Area $area, IPC $to_master) {
         $this->_area = $area;
@@ -32,16 +32,16 @@ class WorkerDispatcher {
     }
 
     /**
-     * @param EntityInterface[] ...$entities
+     * @param ApplicationInterface[] ...$apps
      *
-     * @return int the count of started entities
+     * @return int the count of started applications
      */
-    public function run(EntityInterface ...$entities) {
-        foreach ($entities as $entity) {
-            /** @var EntityInterface $entity */
+    public function run(ApplicationInterface ...$apps) {
+        foreach ($apps as $entity) {
+            /** @var ApplicationInterface $entity */
             try {
                 if($entity->enable($this)) {
-                    $this->_entities[ $entity->getName() ] = $entity;
+                    $this->_apps[ $entity->getName() ] = $entity;
                 } else {
                     $this->getDaemon()->log("The application {$entity->getName()} decided not to run", LogLevel::NOTICE);
                 }
@@ -50,7 +50,7 @@ class WorkerDispatcher {
                 $this->getDaemon()->log("The application {$entity->getName()} cannot be started: ".$e->getMessage(), LogLevel::ERROR);
             }
         }
-        return count($this->_entities);
+        return count($this->_apps);
     }
 
     /**
@@ -61,9 +61,9 @@ class WorkerDispatcher {
             "time"   => microtime(1),
             "worker" => \ION::getStats()
         ];
-        foreach ($this->_entities as $name => $entity) {
+        foreach ($this->_apps as $name => $entity) {
             try {
-                $stats["entities"][$name] = $entity->inspect();
+                $stats["apps"][$name] = $entity->inspect();
             } catch (\Throwable $e) {
                 $entity->log($e, LogLevel::ERROR);
             }
@@ -78,19 +78,19 @@ class WorkerDispatcher {
      */
     public function stop(bool $force = false) {
         return \ION::promise(function () use ($force) {
-            foreach ($this->_entities as $name => $entity) {
+            foreach ($this->_apps as $name => $app) {
                 if(!$force) {
                     $this->getDaemon()->log("Stopping $name application...", LogLevel::DEBUG);
                     try {
-                        yield $entity->disable();
+                        yield $app->disable();
                     } catch (\Throwable $e) {
-                        $entity->log($e, LogLevel::CRITICAL);
+                        $app->log($e, LogLevel::CRITICAL);
                         $this->getDaemon()->log("Occurred error while stopping application {$name}: ".$e->getMessage(), LogLevel::ERROR);
                     }
                 }
                 try {
                     $this->getDaemon()->log("Halting $name application...", LogLevel::DEBUG);
-                    $entity->halt();
+                    $app->halt();
                 } catch (\Throwable $e) {
                     $this->getDaemon()->log("Occurred error while halting application {$name}: ".$e->getMessage(), LogLevel::ERROR);
                 }
@@ -129,9 +129,9 @@ class WorkerDispatcher {
     }
 
     /**
-     * @return QueueHubInterface
+     * @return ChannelFactory
      */
-    public function getQueueHub() : QueueHubInterface {
+    public function getQueueHub() : ChannelFactory {
         return $this->getCluster()->getQueueHub();
     }
 

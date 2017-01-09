@@ -5,8 +5,9 @@ namespace Arcus\Daemon;
 
 use Arcus\Daemon;
 use Arcus\Daemon\Area\RegulatorInterface;
-use Arcus\EntityInterface;
+use Arcus\ApplicationInterface;
 use Arcus\Log;
+use Daemon\Area\WorkerProcess;
 use ION\Process;
 
 class Area {
@@ -22,9 +23,20 @@ class Area {
     private $_work_dir;
     private $_count = 0;
     /**
-     * @var EntityInterface[]
+     * @var ApplicationInterface[]
      */
-    private $_entities = [];
+    private $_apps = [];
+
+    /**
+     * Workers' pid
+     * @var int[]
+     */
+    private $_pids = [];
+
+    /**
+     * @var WorkerDispatcher
+     */
+    private $_dispatcher;
 
     /**
      * Area constructor.
@@ -108,28 +120,28 @@ class Area {
     /**
      * Add entity (application or server) to group of workers
      *
-     * @param EntityInterface $entity
+     * @param ApplicationInterface $entity
      *
      * @return Area
      */
-    public function addEntity(EntityInterface $entity) : self {
-        $this->_entities[ $entity->getName() ] = $entity;
+    public function addApp(ApplicationInterface $entity) : self {
+        $this->_apps[ $entity->getName() ] = $entity;
         return $this;
     }
 
     /**
-     * @return EntityInterface[]
+     * @return ApplicationInterface[]
      */
-    public function getEntities() : array {
-        return $this->_entities;
+    public function getApps() : array {
+        return $this->_apps;
     }
 
     /**
      * @return array
      */
-    public function inspectEntities() {
+    public function inspectApps() {
         $stats = [];
-        foreach($this->_entities as $name => $app) {
+        foreach($this->_apps as $name => $app) {
             try {
                 $stats[$name] = $app->inspect();
             } catch(\Throwable $e) {
@@ -139,85 +151,90 @@ class Area {
         return $stats;
     }
 
-    private function _masterMessage(Process\IPC\Message $message) {
-
-    }
-
-    private function _masterExit(WorkerDispatcher $worker) {
-        Log::emerge("Lost connection with master. Terminate worker");
-//        Process::kill(SIGTERM);
-    }
-
-    private function _workerMessage(Process\IPC\Message $message) {
-
-    }
-
-    private function _workerExit(Process\Worker $worker) {
-        if($worker->getExitStatus()) {
-            Log::emerge("Lost connection with wot. Terminate worker");
-        }
-    }
-
-    private function _spawn() {
-        $process = new WorkerDispatcher();
-        $process->getIPC()->whenIncoming()->then([$this, "_workerMessage"]);
-        $process->getIPC()->whenDisconnected()->then([$this, "_workerExit"]);
-        $process->start(function (Process\IPC $ipc) {
-            $ipc->whenIncoming()->then([$this, "_masterMessage"]);
-            $ipc->whenDisconnected()->then([$this, "_masterExit"]);
-            if($this->_work_dir) {
-                chdir($this->_work_dir);
-            }
-            if($this->_priority != null) {
-                Process::setPriority($this->_priority);
-            }
-            if($this->_user) {
-                Process::setUser($this->_user, $this->_group);
-            }
-            \ION::interval(1.0, "arcus.inspector")->then($this->getInspector($master));
-            foreach($this->_entities as $name => $app) {
-                try {
-                    $app->enable();
-                } catch(\Throwable $e) {
-                    Log::alert(new \RuntimeException("Application $name could not enable", 0, $e));
-                }
-            }
-        });
-    }
-
-    public function getInspector(Process\Worker $master) {
-        return function () use ($master) {
-            $stats = [
-                "load"     => \ION::getStats(),
-                "entities" => []
-            ];
-            foreach($this->_entities as $name => $app) {
-                try {
-                    $stats["entities"][$name] = $app->inspect();
-                } catch(\Throwable $e) {
-                    Log::alert(new \RuntimeException("Application $name could not enable", 0, $e));
-                }
-            }
-            $master->message("arcus.stats")->withData(serialize($stats));
-        };
+    /**
+     * @return int
+     */
+    public function getWorkersCount() : int {
+        return $this->_count;
     }
 
     /**
-     * Run worker and apps
+     * Creates worker object
+     * @return WorkerProcess
      */
-    public function start() {
-        $count = call_user_func($this->_regulator, $this);
-        if($count > $this->_count) {
-            for($i = $this->_count; $i < $count; $this->_count++) {
-                $this->_spawn();
+    protected function _createWorker() : WorkerProcess {
+        return new WorkerProcess();
+    }
+
+    public function inspect() {
+        $current = $this->getWorkersCount();
+        $expected = call_user_func($this->_regulator, $this);
+        if($current < $expected) {
+            for(;$current <= $expected; $current++) {
+                $worker = new WorkerProcess();
+                $this->_count++;
+                $worker
+                    ->getIPC()
+                    ->whenIncoming()
+                    ->then([$this, "_messageHandler"])
+                    ->onFail([Log::class, "error"]);
+
+                $worker
+                    ->whenExit()
+                    ->then([$this, "_exitHandler"])
+                    ->onFail([Log::class, "error"]);
+
+                $worker
+                    ->whenStarted()
+                    ->then([$this, "_startHandler"])
+                    ->onFail([Log::class, "error"]);
+
+
+                $worker->start([$this, "_workerHandler"]);
             }
-        } else {
-            for($i = $this->_count; $i > $count; $this->_count--) {
-                $this->_spawn();
+        } elseif($current > $expected) {
+            for(;$current > $expected; $current--) {
+//                Process::kill($pid, SIGTERM);
             }
         }
     }
 
+    /**
+     * Handle messages from workers
+     *
+     * @param Process\IPC\Message $message
+     */
+    protected function _messageHandler(Process\IPC\Message $message) {
+        $worker = $message->context;
+        /* @var WorkerProcess $worker */
+        $msg = unserialize($message->data);
+        if ($msg instanceof Daemon\IPC\InspectMessage) {
+            $worker->setStats($msg->stats);
+        } elseif ($msg instanceof Daemon\IPC\CloseMessage) {
+            $worker->setStatus(WorkerProcess::STATUS_EXITED);
+        } elseif ($msg instanceof Daemon\IPC\TaskMessage) {
 
+        }
+    }
+
+    /**
+     * Handle exits of workers
+     * @param WorkerProcess $worker
+     */
+    protected function _exitHandler(WorkerProcess $worker) {
+        $this->_count--;
+        $worker->setStatus(WorkerProcess::STATUS_EXITED);
+    }
+
+    protected function _startHandler(WorkerProcess $worker) {
+        $worker->last_pong = time();
+        $worker->setStatus(WorkerProcess::STATUS_WORKING);
+        $this->_pids[$worker->getPID()] = $worker;
+    }
+
+    protected function _workerHandler(Process\IPC $ipc) {
+        $this->_dispatcher = new WorkerDispatcher($this, $ipc);
+        $this->_dispatcher->run(...$this->_apps);
+    }
 
 }

@@ -7,7 +7,7 @@ use Arcus\ApplicationAbstract;
 use Arcus\Daemon\Area\ConstantRegulator;
 use Arcus\Daemon\IPC\CloseMessage;
 use Arcus\Daemon\IPC\InspectMessage;
-use Arcus\EntityInterface;
+use Arcus\ApplicationInterface;
 use Arcus\TestApplication;
 use Arcus\TestCase;
 use ION\Process\IPC;
@@ -72,15 +72,13 @@ class WorkerDispatcherTest extends TestCase
         $this->worker->stop();
         \ION::dispatch();
 
-//        var_dump($this->data);
-
         $this->assertCount(2, $this->data);
         $this->assertInstanceOf(InspectMessage::class, $this->data[0]);
-        $this->assertSame($stats, $this->data[0]->getAppStatsFor("noname"));
+        $this->assertSame($stats, $this->data[0]->stats["entities"]["noname"]);
         $this->assertInstanceOf(CloseMessage::class, $this->data[1]);
     }
 
-    public function _testNotRun() {
+    public function testNotRun() {
         $app = $this->getMockBuilder(TestApplication::class)
             ->setMethods(['enable'])
             ->getMock();

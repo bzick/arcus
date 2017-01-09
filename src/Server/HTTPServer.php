@@ -9,12 +9,12 @@
 namespace Arcus\Server;
 
 
-use Arcus\EntityInterface;
-use Arcus\QueueHubInterface;
+use Arcus\ApplicationInterface;
+use Arcus\ChannelFactory;
 use ION\Stream\Server;
 use Psr\Log\LogLevel;
 
-class HTTPServer implements EntityInterface {
+class HTTPServer implements ApplicationInterface {
 
     public $name = __CLASS__;
     public $server;

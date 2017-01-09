@@ -8,7 +8,7 @@ use Arcus\Daemon\WorkerDispatcher;
 use ION\Promise;
 use Psr\Log\LogLevel;
 
-interface EntityInterface {
+interface ApplicationInterface {
 
     public function getName();
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Arcus\QueueHub;
+namespace Arcus\Channel;
 
 
 use Arcus\TaskAbstract;

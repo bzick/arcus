@@ -1,6 +1,6 @@
 <?php
 
-namespace Arcus\QueueHub;
+namespace Arcus\Channel;
 
 
 use ION\Sequence;
@@ -77,7 +77,6 @@ abstract class ConsumerAbstract implements ConsumerInterface {
         if (!$this->_on_task) {
             $this->_on_task = new Sequence();
         }
-
         return $this->_on_task;
     }
 }

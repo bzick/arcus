@@ -3,13 +3,13 @@
 namespace Arcus\Redis;
 
 
-use Arcus\QueueHub\ConsumerInterface;
-use Arcus\QueueHub\ProducerInterface;
-use Arcus\QueueHubInterface;
+use Arcus\Channel\ConsumerInterface;
+use Arcus\Channel\ProducerInterface;
+use Arcus\ChannelFactory;
 use Arcus\Redis\QueueHub\Consumer;
 use Arcus\Redis\QueueHub\Producer;
 
-class QueueHub implements QueueHubInterface {
+class QueueHub implements ChannelFactory {
 
     /**
      * @var \Redis
@@ -36,7 +36,7 @@ class QueueHub implements QueueHubInterface {
         // TODO: Implement getAppProducer() method.
     }
 
-    public function getConsumer(string $queue_name, string $consumer) : ConsumerInterface {
-        return new Consumer($this->_redis, $queue_name, $consumer);
+    public function getConsumer(string $channel_name, string $consumer) : ConsumerInterface {
+        return new Consumer($this->_redis, $channel_name, $consumer);
     }
 }

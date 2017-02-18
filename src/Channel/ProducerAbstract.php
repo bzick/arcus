@@ -5,11 +5,11 @@ namespace Arcus\Channel;
 
 abstract class ProducerAbstract implements ProducerInterface {
 
-    protected $_producer = "";
-    protected $_count = 1000;
+    protected $_channel = "";
+    protected $_count   = 1000;
 
     public function __toString() : string {
-        return get_called_class()."({$this->_producer})";
+        return get_called_class()."({$this->_channel})";
     }
 
     public function setMaxSize(int $count) {
@@ -22,6 +22,6 @@ abstract class ProducerAbstract implements ProducerInterface {
     }
 
     public function getName() : string {
-        return $this->_producer;
+        return $this->_channel;
     }
 }

@@ -9,17 +9,23 @@ use Arcus\CustomTask;
 use Arcus\TaskAbstract;
 use Arcus\TestCase;
 
-class QueueHubTest extends TestCase {
+class RedisChannelFactoryTest extends TestCase {
 
+    /**
+     * @group dev
+     */
     public function testFactory() {
-        $producer = $this->queue->getProducer('prod');
-        $consumer = $this->queue->getConsumer('prod', 'cons');
+        $producer = $this->queue->getProducer('producer');
+        $consumer = $this->queue->getConsumer('consumer');
         $this->assertInstanceOf(ProducerInterface::class, $producer);
         $this->assertInstanceOf(ConsumerInterface::class, $consumer);
 
-        $this->assertEquals('prod', $producer->getName());
-        $this->assertEquals('prod', $consumer->getProducerName());
-        $this->assertEquals('cons', $consumer->getName());
+        $this->assertEquals('producer', $producer->getName());
+        $this->assertEquals([], $consumer->getChannelsNames());
+        $this->assertEquals('consumer', $consumer->getName());
+        $consumer->subscribe("producer");
+        $consumer->subscribe("producer1");
+        $this->assertEquals(['producer', 'producer1'], $consumer->getChannelsNames());
     }
 
     public function testTransferTask() {

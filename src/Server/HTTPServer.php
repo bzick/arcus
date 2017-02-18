@@ -10,7 +10,7 @@ namespace Arcus\Server;
 
 
 use Arcus\ApplicationInterface;
-use Arcus\ChannelFactory;
+use Arcus\ChannelFactoryInterface;
 use ION\Stream\Server;
 use Psr\Log\LogLevel;
 

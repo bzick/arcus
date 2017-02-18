@@ -1,9 +1,10 @@
 <?php
 
-namespace Arcus\Redis\QueueHub;
+namespace Arcus\Redis\Channel;
 
 
 use Arcus\Channel\ConsumerAbstract;
+use Arcus\Channel\ConsumerInterface;
 use Arcus\Log;
 use ION\Stream;
 
@@ -15,26 +16,25 @@ class Consumer extends ConsumerAbstract {
     protected $_redis;
     protected $_consumer;
     /**
+     * @var Stream[]
+     */
+    protected $_sockets = [];
+    /**
      * @var Stream
      */
-    protected $_socket;
+//    protected $_socket;
     protected $_listen = false;
     protected $_host;
     protected $_dbn;
 
-    public function __construct(\Redis $redis, string $queue_name, string $consumer) {
-        $this->_producer = $queue_name;
+    public function __construct(\Redis $redis, string $consumer) {
         $this->_consumer = $consumer;
-        $this->_redis = $redis;
+        $this->_redis    = $redis;
 
         $this->_dbn  = $redis->database ?? 0;
         $hostname    = $redis->host ?? "127.0.0.1";
         $port        = $redis->port ?? 6379;
         $this->_host = $hostname.":".$port;
-    }
-
-    public function setLockName(string $name) {
-        $this->_consumer = $name;
     }
 
     /**
@@ -46,7 +46,7 @@ class Consumer extends ConsumerAbstract {
      * @return array
      */
     public function getReservedTasks() : array {
-        $tasks = $this->_redis->lRange($this->_producer."#consumers:".$this->_consumer, 0, -1);
+        $tasks = $this->_redis->lRange($this->_consumer."#reserverd", 0, -1);
         if($tasks) {
             foreach($tasks as &$task) {
                 $task = unserialize($task);
@@ -58,24 +58,24 @@ class Consumer extends ConsumerAbstract {
     }
 
     public function enable() : self {
-        if(!$this->_socket) {
-            $this->_socket = Stream::socket($this->_host);
-            $this->_socket->incoming()->then([$this, "_onTask"])->then($this->_on_task);
-            $this->_redis->sAdd($this->_producer . "#consumers", $this->_consumer);
-            if($this->_dbn) {
-                $this->_socket->write("SELECT {$this->_dbn}\r\n");
+        if(!$this->_sockets) {
+            foreach($this->_channels as $channel) {
+                $socket = Stream::socket($this->_host);
+                $socket->incoming()->then([$this, "_onTask"])->then($this->_on_task);
+                $this->_redis->sAdd($channel . "#consumers", $this->_consumer);
+                if($this->_dbn) {
+                    $socket->write("SELECT {$this->_dbn}\r\n");
+                }
+                $socket->enable();
+                $socket->write("BRPOPLPUSH ".implode(" ", $this->_channels)." {$this->_consumer}#reserverd 0\r\n");
+                $this->_sockets[ $channel ] = $socket;
             }
-            $this->_socket->enable();
-        }
-        if(!$this->_listen) {
-            $this->_socket->write("BRPOPLPUSH {$this->_producer} {$this->_producer}#consumers:{$this->_consumer} 0\r\n");
-            $this->_listen = true;
         }
         return $this;
     }
 
     public function release() : self {
-        $this->_redis->del("{$this->_producer}#consumers:{$this->_consumer}");
+        $this->_redis->del("{$this->_consumer}#reserverd");
         return $this;
     }
 
@@ -84,7 +84,12 @@ class Consumer extends ConsumerAbstract {
             $this->_listen = false;
         }
         if($this->_socket) {
-            $this->_redis->sRem($this->_producer . "#consumers", $this->_consumer);
+            $this->_redis->multi();
+            foreach($this->_channels as $channel) {
+                $this->_redis->sRem($channel . "#consumers", $this->_consumer);
+            }
+            $this->_redis->exec();
+//            $this->_redis->sRem($this->_consumer . "#consumers", $this->_consumer);
             if($this->_socket->getSize()) {
                 $this->_onTask($this->_socket);
             }
@@ -96,6 +101,7 @@ class Consumer extends ConsumerAbstract {
 
     public function close() : self {
         $this->disable();
+        return $this;
     }
 
     /**
@@ -123,7 +129,7 @@ class Consumer extends ConsumerAbstract {
                         $this->_task($data);
                         if ($this->_batch_size) {
                             for ($i = 0; $i < $this->_batch_size; $i++) {
-                                if ($value = $this->_redis->rpoplpush($this->_producer, "{$this->_producer}#consumers:{$this->_consumer}")) {
+                                if ($value = $this->_redis->rpoplpush($this->_channels, "{$this->_channels}#consumers:{$this->_consumer}")) {
                                     $this->_task($value);
                                 } else {
                                     break;
@@ -165,6 +171,19 @@ class Consumer extends ConsumerAbstract {
     }
 
     public function getCountTasks() : int {
-        return $this->_redis->lLen($this->_producer);
+        return $this->_redis->lLen($this->_channels);
     }
+
+    /**
+     * Подписан ли потребитель на этот канал
+     *
+     * @param string $channel
+     *
+     * @return bool
+     */
+    public function hasChannel(string $channel) : bool
+    {
+        return in_array($channel, $this->_channels);
+    }
+
 }

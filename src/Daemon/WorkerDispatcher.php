@@ -8,7 +8,7 @@ use Arcus\Daemon;
 use Arcus\Daemon\IPC\CloseMessage;
 use Arcus\Daemon\IPC\InspectMessage;
 use Arcus\ApplicationInterface;
-use Arcus\ChannelFactory;
+use Arcus\ChannelFactoryInterface;
 use Arcus\RedisHub;
 use ION\Process\IPC;
 use ION\Promise;
@@ -17,7 +17,7 @@ use Psr\Log\LogLevel;
 class WorkerDispatcher {
 
     /**
-     * @var ChannelFactory
+     * @var ChannelFactoryInterface
      */
     private $_area;
 
@@ -129,9 +129,9 @@ class WorkerDispatcher {
     }
 
     /**
-     * @return ChannelFactory
+     * @return ChannelFactoryInterface
      */
-    public function getQueueHub() : ChannelFactory {
+    public function getQueueHub() : ChannelFactoryInterface {
         return $this->getCluster()->getQueueHub();
     }
 

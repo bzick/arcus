@@ -33,7 +33,7 @@ class WorkerDispatcherTest extends TestCase
     }
 
     /**
-     * @group dev
+     * @group
      */
     public function testBasicLifeCycle() {
         $stats = ["stats" => 1];

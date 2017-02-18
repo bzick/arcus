@@ -8,9 +8,9 @@ use ION\Sequence;
 abstract class ConsumerAbstract implements ConsumerInterface {
 
     /**
-     * @var string producer name
+     * @var string[] producer name
      */
-    protected $_producer;
+    protected $_channels;
     /**
      * @var string consumer name
      */
@@ -29,13 +29,18 @@ abstract class ConsumerAbstract implements ConsumerInterface {
      */
     protected $_on_task;
 
+    public function subscribe(string $channel) : int {
+        $this->_channels[] = $channel;
+        $this->_channels = array_unique($this->_channels);
+        return count($this->_channels);
+    }
 
     public function getName() : string {
         return $this->_consumer;
     }
 
-    public function getProducerName() : string {
-        return $this->_producer;
+    public function getChannelsNames() : array {
+        return $this->_channels;
     }
 
     public function __toString() : string {

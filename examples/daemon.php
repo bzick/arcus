@@ -3,7 +3,7 @@
 use Arcus\Cluster;
 use Arcus\Daemon\Area;
 use Arcus\Daemon\Area\ConstantRegulator;
-use Arcus\Redis\QueueHub;
+use Arcus\Redis\RedisChannelFactory;
 use Arcus\RedisHub;
 use Arcus\TaskAbstract;
 
@@ -11,7 +11,7 @@ use Arcus\TaskAbstract;
 // prepare tools
 
 $bus     = new RedisHub();
-$queue   = new QueueHub($bus->queue);
+$queue   = new RedisChannelFactory($bus->queue);
 $cluster = new Cluster("CLS01", $bus, $queue);
 
 // create daemon

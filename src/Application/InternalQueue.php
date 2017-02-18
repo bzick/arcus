@@ -5,7 +5,7 @@ namespace Arcus\Application;
 
 use Arcus\ApplicationInterface;
 use Arcus\Channel\ConsumerInterface;
-use Arcus\ChannelFactory;
+use Arcus\ChannelFactoryInterface;
 use ION\Sequence;
 
 class InternalQueue
@@ -29,7 +29,7 @@ class InternalQueue
      */
     private $_cluster;
 
-    public function __construct(ChannelFactory $queue, ApplicationInterface $entity)
+    public function __construct(ChannelFactoryInterface $queue, ApplicationInterface $entity)
     {
         $this->_own     = $queue->getConsumer($entity->getURI('self'),    $entity->getURI('self'));
         $this->_daemon  = $queue->getConsumer($entity->getURI('daemon'),  $entity->getURI('self'));

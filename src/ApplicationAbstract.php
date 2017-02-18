@@ -16,7 +16,7 @@ abstract class ApplicationAbstract implements ApplicationInterface {
      */
     protected $_name = 'noname';
     /**
-     * @var ChannelFactory
+     * @var ChannelFactoryInterface
      */
     protected $_worker;
     /**

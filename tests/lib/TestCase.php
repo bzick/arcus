@@ -2,9 +2,9 @@
 
 namespace Arcus;
 
-use Arcus\Redis\QueueHub;
+use Arcus\Redis\RedisChannelFactory;
 
-class TestCase extends \PHPUnit_Framework_TestCase {
+class TestCase extends \PHPUnit\Framework\TestCase {
     /**
      * @var RedisHub
      */
@@ -14,7 +14,7 @@ class TestCase extends \PHPUnit_Framework_TestCase {
      */
     public $cluster;
     /**
-     * @var QueueHub
+     * @var RedisChannelFactory
      */
     public $queue;
     public $daemon;
@@ -25,7 +25,7 @@ class TestCase extends \PHPUnit_Framework_TestCase {
         $this->redis = new RedisHub();
         $this->redis->setRedisHost('redis', [REDIS_HOST, REDIS_PORT], REDIS_DATABASE);
         $this->redis->redis->flushAll();
-        $this->queue = new QueueHub($this->redis->queue);
+        $this->queue = new RedisChannelFactory($this->redis->queue);
         $this->cluster = new Cluster("ghost", $this->redis, $this->queue);
         $this->daemon = $this->cluster->addDaemon('daemo');
     }

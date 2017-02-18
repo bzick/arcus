@@ -15,11 +15,28 @@ interface ConsumerInterface {
 
     public function getName() : string;
 
-    public function getProducerName() : string;
+    public function getChannelsNames() : array;
 
     public function getCountTasks() : int;
 
     public function __toString() : string;
+
+    /**
+     * Подсисывает потребителя на канал
+     * @param string $channel
+     *
+     * @return int
+     */
+    public function subscribe(string $channel) : int;
+
+    /**
+     * Подписан ли потребитель на этот канал
+     *
+     * @param string $channel
+     *
+     * @return bool
+     */
+    public function hasChannel(string $channel) : bool;
 
     /**
      * Возвращает список зарезервированных под выполенение задач

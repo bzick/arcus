@@ -15,7 +15,7 @@ class Cluster {
      */
     private $_bus;
     /**
-     * @var ChannelFactory
+     * @var ChannelFactoryInterface
      */
     private $_queue;
 
@@ -24,9 +24,9 @@ class Cluster {
      *
      * @param string $name cluster name
      * @param RedisHub $bus
-     * @param ChannelFactory $queue
+     * @param ChannelFactoryInterface $queue
      */
-    public function __construct(string $name, RedisHub $bus, ChannelFactory $queue) {
+    public function __construct(string $name, RedisHub $bus, ChannelFactoryInterface $queue) {
         $this->_name = $name;
         $this->_bus = $bus;
         $this->_queue = $queue;
@@ -45,7 +45,7 @@ class Cluster {
         return $this->_bus;
     }
 
-    public function getQueueHub() : ChannelFactory {
+    public function getQueueHub() : ChannelFactoryInterface {
         return $this->_queue;
     }
 }

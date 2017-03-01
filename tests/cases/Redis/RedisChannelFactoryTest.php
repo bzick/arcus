@@ -11,9 +11,7 @@ use Arcus\TestCase;
 
 class RedisChannelFactoryTest extends TestCase {
 
-    /**
-     * @group dev
-     */
+
     public function testFactory() {
         $producer = $this->queue->getProducer('producer');
         $consumer = $this->queue->getConsumer('consumer');
@@ -27,10 +25,12 @@ class RedisChannelFactoryTest extends TestCase {
         $consumer->subscribe("producer1");
         $this->assertEquals(['producer', 'producer1'], $consumer->getChannelsNames());
     }
-
+    /**
+     * @group dev
+     */
     public function testTransferTask() {
-        $producer = $this->queue->getProducer('prod');
-        $consumer = $this->queue->getConsumer('prod', 'cons');
+        $producer = $this->queue->getProducer('producer');
+        $consumer = $this->queue->getConsumer('consumer');
 
         $producer->push(new CustomTask(1));
         $producer->push(new CustomTask(2));
@@ -39,17 +39,17 @@ class RedisChannelFactoryTest extends TestCase {
         $this->assertEquals(2, $consumer->getCountTasks());
 
         $consumer->whenTask()->then(function(TaskAbstract $task) use ($consumer) {
-            $this->shared["tasks"][] = $task;
+            $this->data["tasks"][] = $task;
             $this->assertEquals([$task], $consumer->getReservedTasks());
-            if(count($this->shared["tasks"]) == 2) {
+            if(count($this->data["tasks"]) == 2) {
                 \ION::stop();
             }
         })->onFail(function(\Throwable $e) {
             \ION::stop();
-            $this->shared["error"] = $e;
+            $this->data["error"] = $e;
         });
-        $consumer->autoEnable(true)->enable()->setAutoRelease(true);
-        $this->assertEquals(['cons'], $producer->getConsumersNames());
+        $consumer->subscribe("producer")->autoEnable(true)->enable()->setAutoRelease(true);
+        $this->assertEquals(['consumer'], $producer->getConsumersNames());
 
         \ION::dispatch();
 

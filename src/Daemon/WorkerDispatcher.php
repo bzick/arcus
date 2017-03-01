@@ -14,6 +14,10 @@ use ION\Process\IPC;
 use ION\Promise;
 use Psr\Log\LogLevel;
 
+/**
+ * Логика рабоего-процесса с приложениями
+ * @package Arcus\Daemon
+ */
 class WorkerDispatcher {
 
     /**
@@ -26,7 +30,7 @@ class WorkerDispatcher {
      */
     private $_apps = [];
 
-    public function __construct(Area $area, IPC $to_master) {
+    public function __construct(Plant $area, IPC $to_master) {
         $this->_area = $area;
         $this->_ipc = $to_master;
     }
@@ -101,9 +105,9 @@ class WorkerDispatcher {
     }
 
     /**
-     * @return Area
+     * @return Plant
      */
-    public function getArea() : Area {
+    public function getArea() : Plant {
         return $this->_area;
     }
 

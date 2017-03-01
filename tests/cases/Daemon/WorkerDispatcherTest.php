@@ -27,7 +27,7 @@ class WorkerDispatcherTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $area = new Area($this->daemon, "unit", new ConstantRegulator(5));
+        $area = new Plant($this->daemon, "unit", new ConstantRegulator(5));
         list($ipc, $this->ipc) = IPC::create(1,1);
         $this->worker = new WorkerDispatcher($area, $ipc);
     }

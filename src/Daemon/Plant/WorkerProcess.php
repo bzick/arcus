@@ -1,6 +1,6 @@
 <?php
 
-namespace Daemon\Area;
+namespace Arcus\Daemon\Plant;
 
 
 use ION\Process\ChildProcess;
@@ -16,25 +16,26 @@ class WorkerProcess extends ChildProcess
 
     public $last_pong = 0;
 
+    public $load = 0.0;
+
     public $statistic = [];
 
     public function setStatus($status) {
-        $this->status = $status;
+        $this->last_pong = $status['time'];
+        if($status['worker']) {
+            $this->load = $status['worker']['php_time'] / ($status['worker']['current_timestamp'] - $status['worker']['reset_timestamp']);
+        }
     }
 
     public function setStats(array $statistic) {
         $this->statistic = $statistic;
     }
 
-    public function getStats() {
-        return $this->statistic["worker"];
-    }
-
     public function getAppStats() {
-        return $this->statistic['entities'];
+        return $this->statistic['apps'];
     }
 
     public function getAppStatsFor(string $name) : array {
-        return $this->statistic['entities'][$name] ?? [];
+        return $this->statistic['apps'][$name] ?? [];
     }
 }

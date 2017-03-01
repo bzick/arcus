@@ -37,6 +37,10 @@ class Consumer extends ConsumerAbstract {
         $this->_host = $hostname.":".$port;
     }
 
+    public function getCountReservedTasks() : int {
+        return $this->_redis->lLen($this->_consumer."#reserved");
+    }
+
     /**
      * Возвращает список зарезервированных под выполенение задач
      * @return array
@@ -59,15 +63,17 @@ class Consumer extends ConsumerAbstract {
 
     public function enable() : self {
         if(!$this->_sockets) {
+            /* redis don't have MBRPOPLPUSH yet (see https://github.com/antirez/redis/issues/1785) */
             foreach($this->_channels as $channel) {
                 $socket = Stream::socket($this->_host);
-                $socket->incoming()->then([$this, "_onTask"])->then($this->_on_task);
+                $socket->channel = $channel;
+                $socket->incoming()->then([$this, "_onTask"])->then($this->_on_task, $this->_on_problem);
                 $this->_redis->sAdd($channel . "#consumers", $this->_consumer);
                 if($this->_dbn) {
                     $socket->write("SELECT {$this->_dbn}\r\n");
                 }
                 $socket->enable();
-                $socket->write("BRPOPLPUSH ".implode(" ", $this->_channels)." {$this->_consumer}#reserverd 0\r\n");
+                $socket->write("BRPOPLPUSH ".$channel." {$this->_consumer}#reserved 0\r\n");
                 $this->_sockets[ $channel ] = $socket;
             }
         }
@@ -79,22 +85,17 @@ class Consumer extends ConsumerAbstract {
         return $this;
     }
 
-    public function disable() : self {
+    public function disable() : \Generator {
         if($this->_listen) {
             $this->_listen = false;
         }
-        if($this->_socket) {
-            $this->_redis->multi();
-            foreach($this->_channels as $channel) {
-                $this->_redis->sRem($channel . "#consumers", $this->_consumer);
+        foreach ($this->_sockets as $channel => $socket) {
+            if($socket->getSize()) {
+                $this->_onTask($socket);
             }
-            $this->_redis->exec();
-//            $this->_redis->sRem($this->_consumer . "#consumers", $this->_consumer);
-            if($this->_socket->getSize()) {
-                $this->_onTask($this->_socket);
-            }
-            $this->_socket->shutdown();
-            $this->_socket = null;
+            $this->_redis->sRem($channel . "#consumers", $this->_consumer);
+            yield $socket->shutdown()->closed();
+            unset($this->_sockets[$channel]);
         }
         return $this;
     }
@@ -171,7 +172,11 @@ class Consumer extends ConsumerAbstract {
     }
 
     public function getCountTasks() : int {
-        return $this->_redis->lLen($this->_channels);
+        $count = 0;
+        foreach ($this->_channels as $channel) {
+            $count += $this->_redis->lLen($channel);
+        }
+        return $count;
     }
 
     /**

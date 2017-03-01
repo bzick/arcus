@@ -1,9 +1,9 @@
 <?php
 
-namespace Arcus\Daemon\Area;
+namespace Arcus\Daemon\Plant;
 
 
-use Arcus\Daemon\Area;
+use Arcus\Daemon\Plant;
 
 class ConstantRegulator implements RegulatorInterface {
 
@@ -13,7 +13,7 @@ class ConstantRegulator implements RegulatorInterface {
         $this->count = $count;
     }
 
-    public function __invoke(Area $area) : int {
+    public function __invoke(Plant $area) : int {
         return $this->count;
     }
 }

@@ -3,7 +3,7 @@
 namespace Arcus\Daemon\Area;
 
 
-use Arcus\Daemon\Area;
+use Arcus\Daemon\Plant;
 use Arcus\TestCase;
 
 class RegulatorTest extends TestCase {
@@ -12,7 +12,7 @@ class RegulatorTest extends TestCase {
 
         $regulator = new ConstantRegulator(5);
 
-        $this->assertEquals(5, $regulator(new class($this->daemon, "test", $regulator) extends Area {
+        $this->assertEquals(5, $regulator(new class($this->daemon, "test", $regulator) extends Plant {
             public function getLoadAverage() : float {
                 return 1.0;
             }
@@ -24,7 +24,7 @@ class RegulatorTest extends TestCase {
         $regulator->setLoadLevel(0.4, 0.6);
         $regulator->setStepSize(2);
 
-        $area = new class($this->daemon, "test", $regulator) extends Area {
+        $area = new class($this->daemon, "test", $regulator) extends Plant {
             public $load;
             public $workers_count;
             public function setStars(float $load, int $workers_count) {

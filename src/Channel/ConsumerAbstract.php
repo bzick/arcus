@@ -10,7 +10,7 @@ abstract class ConsumerAbstract implements ConsumerInterface {
     /**
      * @var string[] producer name
      */
-    protected $_channels;
+    protected $_channels = [];
     /**
      * @var string consumer name
      */
@@ -29,6 +29,12 @@ abstract class ConsumerAbstract implements ConsumerInterface {
      */
     protected $_on_task;
 
+    /**
+     * @inheritdoc
+     * @param string $channel
+     *
+     * @return int
+     */
     public function subscribe(string $channel) : int {
         $this->_channels[] = $channel;
         $this->_channels = array_unique($this->_channels);
@@ -38,6 +44,7 @@ abstract class ConsumerAbstract implements ConsumerInterface {
     public function getName() : string {
         return $this->_consumer;
     }
+
 
     public function getChannelsNames() : array {
         return $this->_channels;

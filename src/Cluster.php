@@ -3,8 +3,10 @@
 namespace Arcus;
 
 
-use ION\Process;
-
+/**
+ *
+ * @package Arcus
+ */
 class Cluster {
     /**
      * @var string

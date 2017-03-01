@@ -3,12 +3,15 @@
 namespace Arcus;
 
 
-use Arcus\Daemon\Area;
-use Arcus\Daemon\Area\RegulatorInterface;
-use Arcus\Daemon\WorkerDispatcher;
+use Arcus\Daemon\Plant;
+use Arcus\Daemon\Plant\RegulatorInterface;
 use ION\Process;
-use Psr\Log\LogLevel;
 
+/**
+ * Мультипроцессовый демон.
+ * Управляет группами процессов.
+ * @package Arcus
+ */
 class Daemon {
 
     /**
@@ -20,9 +23,9 @@ class Daemon {
      */
     protected $_timer = 1.0;
     /**
-     * @var Area[]
+     * @var Plant[]
      */
-    protected $_areas = [];
+    protected $_plants = [];
     /**
      * @var Cluster
      */
@@ -32,21 +35,6 @@ class Daemon {
      */
     protected $_name;
 
-    public static function getCurrentWorker() : WorkerDispatcher {
-        return self::getCurrent()->getWorker();
-    }
-
-    public static function getCurrent() : Daemon {
-        if(self::$_current) {
-            return self::$_current;
-        } else {
-            throw new \LogicException("Daemon not ready");
-        }
-    }
-
-    public static function getCurrentCluster() : Cluster {
-        return self::getCurrent()->getCluster();
-    }
 
     public function __construct(Cluster $cluster, string $name = '') {
         if(!$name) {
@@ -56,17 +44,23 @@ class Daemon {
         $this->_cluster = $cluster;
     }
 
+    /**
+     * @return Cluster
+     */
     public function getCluster() : Cluster {
         return $this->_cluster;
     }
 
+    /**
+     * @return string
+     */
     public function getName() : string {
         return $this->_name;
     }
 
 
     /**
-     * Интервал между инспекциями подсистем. Влияет на таймауты коннектов.
+     * Интервал между инспекциями подсистем.
      *
      * @param float $timeout
      *
@@ -85,9 +79,17 @@ class Daemon {
         return $this->_timer;
     }
 
-    public function addArea(string $name, RegulatorInterface $regulator) {
-        $area = new Area($this, $name, $regulator);
-        $this->_areas[$area->getName()] = [ $area, $regulator ];
+    /**
+     * Объявляет новую область процессов
+     *
+     * @param string $name
+     * @param RegulatorInterface $regulator
+     *
+     * @return Plant
+     */
+    public function addPlant(string $name, RegulatorInterface $regulator) {
+        $area = new Plant($this, $name, $regulator);
+        $this->_plants[$area->getName()] = [ $area, $regulator ];
         return $area;
     }
 
@@ -96,8 +98,8 @@ class Daemon {
      *
      * @return bool
      */
-    public function getArea(string $name) {
-        return $this->_areas[$name][0] ?? false;
+    public function getPlant(string $name) {
+        return $this->_plants[$name][0] ?? false;
     }
 
     public function log($message, string $level) {
@@ -105,34 +107,24 @@ class Daemon {
     }
 
     /**
-     * Запуск демона
+     * Запуск демона. Стартуют все фабрики.
      */
     public function start() {
         self::$_current = $this;
-        foreach($this->_areas as $area) {
-
-            $area->inspect();
-            /* @var RegulatorInterface $regulator */
-            $current = $area->getWorkersCount();
-            $expected = $regulator($area);
-            if($current < $expected) {
-                for(;$current <= $expected; $current++) {
-                    $worker = Process::spawn()->run([$area, "setup"]);
-                    $worker->onConnect()->then([$area, "addWorker"]);
-                    $worker->onMessage()->then([$area, "message"]);
-                    $worker->onDisconnect()->then([$area, "removeWorker"]);
-                    $worker->onExit()->then([$this, "rebalance"]);
-                }
-            } elseif($current > $expected) {
-                for(;$current > $expected; $current--) {
-//                    Process::kill($pid, SIGTERM);
-                }
-            }
-
+        foreach($this->_plants as $plant) {
+            $plant->inspect();
         }
-        \ION::interval($this->_timer)->then([$this, "rebalance"]);
+        \ION::interval($this->_timer)->then([$this, "inspect"]);
         \ION::dispatch();
         self::$_current = null;
+    }
 
+    /**
+     * Инспекция всех фабрик
+     */
+    public function inspect() {
+        foreach($this->_plants as $plant) {
+            $plant->inspect();
+        }
     }
 }

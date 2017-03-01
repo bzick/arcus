@@ -1,9 +1,9 @@
 <?php
 
-namespace Arcus\Daemon\Area;
+namespace Arcus\Daemon\Plant;
 
 
-use Arcus\Daemon\Area;
+use Arcus\Daemon\Plant;
 
 /**
  * Regulates the number of workers depending on the average load of workers
@@ -47,7 +47,7 @@ class LoadRegulator implements RegulatorInterface {
         return $this;
     }
 
-    public function __invoke(Area $area) : int {
+    public function __invoke(Plant $area) : int {
         $current_load = $area->getLoadAverage();
         $count = $area->getProcessCount();
         if($count < $this->min) {

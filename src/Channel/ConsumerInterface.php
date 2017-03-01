@@ -13,10 +13,21 @@ use ION\Sequence;
  */
 interface ConsumerInterface {
 
+    /**
+     * Имя потребителя
+     * @return string
+     */
     public function getName() : string;
 
+    /**
+     * Список канало на которые подаписан потребитель
+     * @return array
+     */
     public function getChannelsNames() : array;
 
+    /**
+     * @return int
+     */
     public function getCountTasks() : int;
 
     public function __toString() : string;
@@ -37,6 +48,12 @@ interface ConsumerInterface {
      * @return bool
      */
     public function hasChannel(string $channel) : bool;
+
+    /**
+     * Возвращает количество зарезервированных задач
+     * @return int
+     */
+    public function getCountReservedTasks() : int;
 
     /**
      * Возвращает список зарезервированных под выполенение задач

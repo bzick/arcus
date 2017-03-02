@@ -198,7 +198,7 @@ class Plant {
 
     public function inspect() {
         if($this->_dispatcher) {
-            $this->_dispatcher->inspector();
+            $this->_dispatcher->inspect();
         } else {
             $current  = $this->getWorkersCount();
             $expected = call_user_func($this->_regulator, $this);

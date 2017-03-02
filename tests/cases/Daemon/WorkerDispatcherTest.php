@@ -68,7 +68,7 @@ class WorkerDispatcherTest extends TestCase
                 \ION::stop();
             }
         });
-        $this->worker->inspector();
+        $this->worker->inspect();
         $this->worker->stop();
         \ION::dispatch();
 

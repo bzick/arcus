@@ -9,6 +9,7 @@ use Arcus\Daemon\IPC\CloseMessage;
 use Arcus\Daemon\IPC\InspectMessage;
 use Arcus\ApplicationInterface;
 use Arcus\ChannelFactoryInterface;
+use Arcus\Log;
 use Arcus\RedisHub;
 use ION\Process\IPC;
 use ION\Promise;
@@ -33,6 +34,14 @@ class WorkerDispatcher {
     public function __construct(Plant $area, IPC $to_master) {
         $this->_area = $area;
         $this->_ipc = $to_master;
+        $this->_ipc->whenDisconnected()->then($this->disconnectHandler());
+    }
+
+    public function disconnectHandler() {
+        return function () {
+            Log::critical("Master shutdown. Stop worker...");
+            yield $this->stop();
+        };
     }
 
     /**
@@ -41,17 +50,17 @@ class WorkerDispatcher {
      * @return int the count of started applications
      */
     public function run(ApplicationInterface ...$apps) {
-        foreach ($apps as $entity) {
-            /** @var ApplicationInterface $entity */
+        foreach ($apps as $app) {
+            /** @var ApplicationInterface $app */
             try {
-                if($entity->enable($this)) {
-                    $this->_apps[ $entity->getName() ] = $entity;
+                if($app->enable($this)) {
+                    $this->_apps[ $app->getName() ] = $app;
                 } else {
-                    $this->getDaemon()->log("The application {$entity->getName()} decided not to run", LogLevel::NOTICE);
+                    $this->getDaemon()->log("The application {$app->getName()} decided not to run", LogLevel::NOTICE);
                 }
             } catch (\Throwable $e) {
-                $entity->log($e, LogLevel::CRITICAL);
-                $this->getDaemon()->log("The application {$entity->getName()} cannot be started: ".$e->getMessage(), LogLevel::ERROR);
+                $app->log($e, LogLevel::CRITICAL);
+                $this->getDaemon()->log("The application {$app->getName()} cannot be started: ".$e->getMessage(), LogLevel::ERROR);
             }
         }
         return count($this->_apps);
@@ -60,7 +69,7 @@ class WorkerDispatcher {
     /**
      * Inspect all apps
      */
-    public function inspector() {
+    public function inspect() {
         $stats = [
             "time"   => microtime(1),
             "worker" => \ION::getStats()
@@ -100,7 +109,9 @@ class WorkerDispatcher {
                 }
                 $this->getDaemon()->log("Application $name has stopped", LogLevel::DEBUG);
             }
-            $this->_ipc->send(serialize(new CloseMessage()));
+            if($this->_ipc->isConnected()) {
+                $this->_ipc->send(serialize(new CloseMessage()));
+            }
         });
     }
 

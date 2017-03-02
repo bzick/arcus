@@ -13,7 +13,7 @@ class ConstantRegulator implements RegulatorInterface {
         $this->count = $count;
     }
 
-    public function __invoke(Plant $area) : int {
+    public function __invoke(Plant $plant) : int {
         return $this->count;
     }
 }

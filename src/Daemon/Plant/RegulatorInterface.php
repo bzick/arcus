@@ -7,9 +7,9 @@ use Arcus\Daemon\Plant;
 interface RegulatorInterface {
 
     /**
-     * @param Plant $area
+     * @param Plant $plant
      *
      * @return int new count of workers
      */
-    public function __invoke(Plant $area) : int;
+    public function __invoke(Plant $plant) : int;
 }

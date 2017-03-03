@@ -167,21 +167,6 @@ class Plant {
     }
 
     /**
-     * @return array
-     */
-//    public function inspectApps() {
-//        $stats = [];
-//        foreach($this->_apps as $name => $app) {
-//            try {
-//                $stats[$name] = $app->inspect();
-//            } catch(\Throwable $e) {
-//                Log::warning(new Daemon\Error\InspectionFailedException("Inspection of {$app} failed: ".$e->getMessage(), 0, $e));
-//            }
-//        }
-//        return $stats;
-//    }
-
-    /**
      * @return int
      */
     public function getWorkersCount() : int {
@@ -197,9 +182,9 @@ class Plant {
     }
 
     public function inspect() {
-        if($this->_dispatcher) {
+        if($this->_dispatcher) { // in worker
             $this->_dispatcher->inspect();
-        } else {
+        } else { // in master
             $current  = $this->getWorkersCount();
             $expected = call_user_func($this->_regulator, $this);
             if ($current < $expected) {
@@ -226,9 +211,13 @@ class Plant {
                     $worker->start($this->_workerHandler());
                 }
             } elseif ($current > $expected) {
-
-                for (; $current > $expected; $current--) {
-//                Process::kill($pid, SIGTERM);
+                $for_stop = $current - $expected;
+                $load = $this->getLoad();
+                arsort($load);
+                foreach ($load as $pid => $pload) {
+                    if(!$for_stop--) {
+                        Process::kill($pid, SIGTERM);
+                    }
                 }
             }
         }
